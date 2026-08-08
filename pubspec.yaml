@@ -38,6 +38,11 @@ dependencies:
   go_router: ^17.4.0
   record: ^7.1.1
   just_audio: ^0.10.6
+  flutter_midi_pro: ^4.0.4
+  flutter_virtual_piano: ^0.0.10
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +60,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -63,6 +69,7 @@ flutter:
 
   assets:
     - assets/audio/piano/
+    - assets/soundfonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

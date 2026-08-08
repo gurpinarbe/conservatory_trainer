@@ -118,6 +118,19 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_localizations:
+    dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_midi_pro:
+    dependency: "direct main"
+    description:
+      name: flutter_midi_pro
+      sha256: "85ae7a5996ee861b54f468889b6c9ed9ae00d71be8ab694c4be84fe47282ca51"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.4"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -131,6 +144,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_virtual_piano:
+    dependency: "direct main"
+    description:
+      name: flutter_virtual_piano
+      sha256: "4e8dff4b457ea06a162cf3612268c767f6a55c522b56f6c9c6f1374bd9b5cef6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.10"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -152,6 +173,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.2"
   jni:
     dependency: transitive
     description:

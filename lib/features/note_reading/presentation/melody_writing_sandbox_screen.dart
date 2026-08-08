@@ -5,6 +5,7 @@ import '../../../core/music/music_clef.dart';
 import '../../../core/music/notation_event.dart';
 import '../../../core/music/notation_sequence.dart';
 import '../../../core/music/time_signature.dart';
+import '../../../l10n/l10n.dart';
 import '../../../shared/widgets/notation/music_staff_view.dart';
 
 class MelodyWritingSandboxScreen extends StatelessWidget {
@@ -21,9 +22,10 @@ class MelodyWritingSandboxScreen extends StatelessWidget {
         ),
       ],
     );
+    final AppLocalizations l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Melodiyi Porteye Yaz')),
+      appBar: AppBar(title: Text(l10n.melodyWritingAppBarTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -31,7 +33,7 @@ class MelodyWritingSandboxScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Bu ekran ileride sürükle-bırak nota yerleştirme için kullanılacak.',
+                l10n.melodyWritingIntro,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -53,7 +55,7 @@ class MelodyWritingSandboxScreen extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                'Planlanan araçlar: nota değeri seçimi, sus ekleme, yanlış notayı silme, sağa-sola taşıma ve ölçü bütünlüğü kontrolü.',
+                l10n.melodyWritingDescription,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(height: 1.45),

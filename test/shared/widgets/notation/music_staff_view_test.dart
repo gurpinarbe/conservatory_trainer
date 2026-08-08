@@ -7,7 +7,10 @@ import 'package:conservatory_trainer/core/music/pitch_calculator.dart';
 import 'package:conservatory_trainer/core/music/time_signature.dart';
 import 'package:conservatory_trainer/shared/widgets/notation/music_staff_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../test_helpers/test_support.dart';
 
 void main() {
   testWidgets('active notation highlight changes with the active note', (
@@ -101,11 +104,13 @@ void main() {
 }
 
 Widget _wrap(Widget child) {
-  return MaterialApp(
-    home: Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SizedBox(width: 360, child: child),
+  return ProviderScope(
+    child: buildLocalizedMaterialApp(
+      Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(width: 360, child: child),
+        ),
       ),
     ),
   );

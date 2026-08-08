@@ -7,12 +7,10 @@ class SingleNoteExerciseSnapshot {
     required this.detectedNote,
     required this.centDifference,
     required this.resultState,
-    required this.resultMessage,
   });
 
   final MusicNote targetNote;
   final MusicNote detectedNote;
   final double centDifference;
   final PitchResultState resultState;
-  final String resultMessage;
 }

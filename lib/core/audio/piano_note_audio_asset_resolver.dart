@@ -33,24 +33,23 @@ class DefaultPianoNoteAudioAssetResolver
   }
 
   String _fileNameForNote(MusicNote note) {
-    return '${_assetSlug(note.noteName)}${note.octave}.$fileExtension';
+    return '${_assetSlug(note.pitchClass)}${note.octave}.$fileExtension';
   }
 
-  String _assetSlug(String noteName) {
-    return switch (noteName) {
-      'C' => 'c',
-      'C#' => 'c_sharp',
-      'D' => 'd',
-      'D#' => 'd_sharp',
-      'E' => 'e',
-      'F' => 'f',
-      'F#' => 'f_sharp',
-      'G' => 'g',
-      'G#' => 'g_sharp',
-      'A' => 'a',
-      'A#' => 'a_sharp',
-      'B' => 'b',
-      _ => noteName.toLowerCase(),
+  String _assetSlug(PitchClass pitchClass) {
+    return switch (pitchClass) {
+      PitchClass.c => 'c',
+      PitchClass.cSharp => 'c_sharp',
+      PitchClass.d => 'd',
+      PitchClass.dSharp => 'd_sharp',
+      PitchClass.e => 'e',
+      PitchClass.f => 'f',
+      PitchClass.fSharp => 'f_sharp',
+      PitchClass.g => 'g',
+      PitchClass.gSharp => 'g_sharp',
+      PitchClass.a => 'a',
+      PitchClass.aSharp => 'a_sharp',
+      PitchClass.b => 'b',
     };
   }
 }

@@ -2,27 +2,47 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../app/note_naming_controller.dart';
+import '../../../core/music/music_clef.dart';
+import '../../../core/music/music_localizations.dart';
+import '../../../core/music/note_label_formatter.dart';
+import '../../../core/music/note_naming_system.dart';
 import '../../../core/music/pitch_result_state.dart';
+import '../../../l10n/l10n.dart';
 import '../../../shared/widgets/notation/music_staff_panel.dart';
 import '../../../shared/widgets/piano/piano_panel.dart';
 import '../application/single_note_exercise_controller.dart';
-import '../domain/single_note_exercise_state.dart';
 import '../domain/single_note_exercise_snapshot.dart';
+import '../domain/single_note_exercise_state.dart';
 import 'widgets/exercise_metric_card.dart';
 
-class SingleNoteScreen extends ConsumerWidget {
+class SingleNoteScreen extends ConsumerStatefulWidget {
   const SingleNoteScreen({super.key});
 
+  static const NoteLabelFormatter _noteLabelFormatter = NoteLabelFormatter();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SingleNoteScreen> createState() => _SingleNoteScreenState();
+}
+
+class _SingleNoteScreenState extends ConsumerState<SingleNoteScreen> {
+  String? _statusMessage;
+
+  @override
+  Widget build(BuildContext context) {
     final SingleNoteExerciseState exerciseState = ref.watch(
       singleNoteExerciseControllerProvider,
     );
     final SingleNoteExerciseSnapshot snapshot = exerciseState.snapshot;
+    final NoteNamingSystem noteNamingSystem = ref.watch(
+      noteNamingControllerProvider,
+    );
+    final AppLocalizations l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tek Ses Tekrarı')),
+      appBar: AppBar(title: Text(l10n.singleNoteAppBarTitle)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
@@ -41,22 +61,30 @@ class SingleNoteScreen extends ConsumerWidget {
                     .read(singleNoteExerciseControllerProvider.notifier)
                     .setShowNotesOnStaff(value);
               },
-              onClefPreferenceChanged: (value) {
+              onClefPreferenceChanged: (MusicClefPreference value) {
                 ref
                     .read(singleNoteExerciseControllerProvider.notifier)
                     .setStaffClefPreference(value);
               },
             );
             final Widget actionButtons = _ActionButtonsSection(
-              onListenPressed: () => _handleListenPressed(context, ref),
-              onRecordPressed: () => _handleRecordPressed(context, ref),
+              onListenPressed: _handleListenPressed,
+              onRecordPressed: _handleRecordPressed,
+              statusMessage: _statusMessage,
             );
-            final Widget metricsSection = _MetricsSection(snapshot: snapshot);
+            final Widget metricsSection = _MetricsSection(
+              snapshot: snapshot,
+              noteNamingSystem: noteNamingSystem,
+            );
             final Widget pianoPanel = PianoPanel(
               highlightedMidiNotes: exerciseState.highlightedMidiNotes,
+              pressedMidiNotes: exerciseState.pressedMidiNotes,
               showHighlightedMidiNotes: exerciseState.showNotesOnPiano,
               autoFollowHighlightedNotes: exerciseState.autoFollowOctave,
               lastPlayedNote: exerciseState.lastPlayedNote,
+              soundFontStatusMessage: exerciseState.pianoStatusType
+                  ?.localizedMessage(l10n),
+              isSoundFontLoaded: exerciseState.isPianoSoundFontLoaded,
               onShowHighlightedMidiNotesChanged: (bool value) {
                 ref
                     .read(singleNoteExerciseControllerProvider.notifier)
@@ -68,12 +96,35 @@ class SingleNoteScreen extends ConsumerWidget {
                     .setAutoFollowOctave(value);
               },
               onDevelopmentDemoPressed: () {
-                unawaited(_handleDevelopmentDemoPressed(context, ref));
+                unawaited(_handleDevelopmentDemoPressed());
               },
-              onNotePressed: (note) {
-                ref
-                    .read(singleNoteExerciseControllerProvider.notifier)
-                    .handleNotePressed(note);
+              onPlayLa4DemoPressed: () {
+                unawaited(
+                  ref
+                      .read(singleNoteExerciseControllerProvider.notifier)
+                      .playLa4Demo(),
+                );
+              },
+              onPlayCMajorChordDemoPressed: () {
+                unawaited(
+                  ref
+                      .read(singleNoteExerciseControllerProvider.notifier)
+                      .playCMajorChordDemo(),
+                );
+              },
+              onNotePressed: (int midiNoteNumber) {
+                unawaited(
+                  ref
+                      .read(singleNoteExerciseControllerProvider.notifier)
+                      .handlePianoNotePressed(midiNoteNumber),
+                );
+              },
+              onNoteReleased: (int midiNoteNumber) {
+                unawaited(
+                  ref
+                      .read(singleNoteExerciseControllerProvider.notifier)
+                      .handlePianoNoteReleased(midiNoteNumber),
+                );
               },
             );
             final bool useLandscapeLayout = _shouldUseLandscapeLayout(
@@ -96,6 +147,7 @@ class SingleNoteScreen extends ConsumerWidget {
                             children: [
                               _TargetSection(
                                 targetFrequency: _formatFrequency(
+                                  context,
                                   snapshot.targetNote.frequencyHz,
                                 ),
                               ),
@@ -115,6 +167,7 @@ class SingleNoteScreen extends ConsumerWidget {
                   ] else ...[
                     _TargetSection(
                       targetFrequency: _formatFrequency(
+                        context,
                         snapshot.targetNote.frequencyHz,
                       ),
                     ),
@@ -141,56 +194,108 @@ class SingleNoteScreen extends ConsumerWidget {
       (constraints.maxWidth > constraints.maxHeight &&
           constraints.maxWidth >= 700);
 
-  static String _formatFrequency(double value) {
+  static String _formatFrequency(BuildContext context, double value) {
+    final String localeName = Localizations.localeOf(context).toLanguageTag();
     final int fractionDigits = value == value.roundToDouble() ? 0 : 1;
-    return '${value.toStringAsFixed(fractionDigits)} Hz';
+    final NumberFormat format = NumberFormat.decimalPatternDigits(
+      locale: localeName,
+      decimalDigits: fractionDigits,
+    );
+    return '${format.format(value)} Hz';
   }
 
-  static String _formatCent(double value) => value.toStringAsFixed(1);
+  static String _formatCent(BuildContext context, double value) {
+    final String localeName = Localizations.localeOf(context).toLanguageTag();
+    final NumberFormat format = NumberFormat.decimalPatternDigits(
+      locale: localeName,
+      decimalDigits: 1,
+    );
+    return format.format(value);
+  }
 
-  Future<void> _handleListenPressed(BuildContext context, WidgetRef ref) async {
-    final String message = await ref
+  Future<void> _handleListenPressed() async {
+    final SingleNoteUserFeedback feedback = await ref
         .read(singleNoteExerciseControllerProvider.notifier)
         .handleListenPressed();
 
-    if (!context.mounted) {
+    if (!mounted) {
       return;
     }
 
-    _showPreviewMessage(context, message);
+    _setStatusMessage(
+      _feedbackMessage(
+        context,
+        feedback,
+        ref.read(singleNoteExerciseControllerProvider),
+      ),
+    );
   }
 
-  Future<void> _handleRecordPressed(BuildContext context, WidgetRef ref) async {
-    final String message = await ref
+  Future<void> _handleRecordPressed() async {
+    final SingleNoteUserFeedback feedback = await ref
         .read(singleNoteExerciseControllerProvider.notifier)
         .handleRecordPressed();
 
-    if (!context.mounted) {
+    if (!mounted) {
       return;
     }
 
-    _showPreviewMessage(context, message);
+    _setStatusMessage(
+      _feedbackMessage(
+        context,
+        feedback,
+        ref.read(singleNoteExerciseControllerProvider),
+      ),
+    );
   }
 
-  Future<void> _handleDevelopmentDemoPressed(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final String message = await ref
+  Future<void> _handleDevelopmentDemoPressed() async {
+    final SingleNoteUserFeedback feedback = await ref
         .read(singleNoteExerciseControllerProvider.notifier)
         .playDevelopmentDemoSequence();
 
-    if (!context.mounted) {
+    if (!mounted) {
       return;
     }
 
-    _showPreviewMessage(context, message);
+    _setStatusMessage(
+      _feedbackMessage(
+        context,
+        feedback,
+        ref.read(singleNoteExerciseControllerProvider),
+      ),
+    );
   }
 
-  void _showPreviewMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  String _feedbackMessage(
+    BuildContext context,
+    SingleNoteUserFeedback feedback,
+    SingleNoteExerciseState state,
+  ) {
+    final AppLocalizations l10n = context.l10n;
+    final String audioStatus =
+        state.pianoStatusType?.localizedMessage(l10n) ??
+        l10n.pianoSoundFontMissingMessage;
+
+    return switch (feedback) {
+      SingleNoteUserFeedback.previewSoundPlaying =>
+        l10n.previewSoundPlayingMessage,
+      SingleNoteUserFeedback.previewSoundShowing =>
+        l10n.previewSoundShowingMessage(audioStatus),
+      SingleNoteUserFeedback.microphonePermissionDenied =>
+        l10n.microphonePermissionDeniedMessage,
+      SingleNoteUserFeedback.recordPreview => l10n.recordPreviewMessage,
+      SingleNoteUserFeedback.demoSequencePlaying =>
+        l10n.demoSequencePlayingMessage,
+      SingleNoteUserFeedback.demoSequenceShowing =>
+        l10n.demoSequenceShowingMessage(audioStatus),
+    };
+  }
+
+  void _setStatusMessage(String message) {
+    setState(() {
+      _statusMessage = message;
+    });
   }
 }
 
@@ -198,13 +303,17 @@ class _ActionButtonsSection extends StatelessWidget {
   const _ActionButtonsSection({
     required this.onListenPressed,
     required this.onRecordPressed,
+    this.statusMessage,
   });
 
   final VoidCallback onListenPressed;
   final VoidCallback onRecordPressed;
+  final String? statusMessage;
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -213,7 +322,7 @@ class _ActionButtonsSection extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onListenPressed,
             icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text('Sesi Dinle'),
+            label: Text(l10n.listenButton),
           ),
         ),
         const SizedBox(height: 12),
@@ -222,27 +331,89 @@ class _ActionButtonsSection extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: onRecordPressed,
             icon: const Icon(Icons.mic_none_rounded),
-            label: const Text('Söylemeye Başla'),
+            label: Text(l10n.singStartButton),
           ),
         ),
+        const SizedBox(height: 14),
+        _ActionStatusBanner(message: statusMessage),
       ],
     );
   }
 }
 
-class _MetricsSection extends StatelessWidget {
-  const _MetricsSection({required this.snapshot});
+class _ActionStatusBanner extends StatelessWidget {
+  const _ActionStatusBanner({required this.message});
 
-  final SingleNoteExerciseSnapshot snapshot;
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 72),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        child: message == null
+            ? const SizedBox.shrink()
+            : Container(
+                key: ValueKey<String>(message!),
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: colorScheme.outlineVariant),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        message!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer,
+                          height: 1.4,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class _MetricsSection extends StatelessWidget {
+  const _MetricsSection({
+    required this.snapshot,
+    required this.noteNamingSystem,
+  });
+
+  final SingleNoteExerciseSnapshot snapshot;
+  final NoteNamingSystem noteNamingSystem;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double metricWidth = _metricWidth(constraints.maxWidth);
+        final String detectedNoteName = SingleNoteScreen._noteLabelFormatter
+            .formatScientificName(
+              snapshot.detectedNote,
+              namingSystem: noteNamingSystem,
+            );
 
-        // Kart verilerini ekrandan değil uygulama katmanından alıyoruz.
-        // Gerçek analiz geldiğinde widget yapısını bozmak gerekmeyecek.
         return Wrap(
           spacing: 16,
           runSpacing: 16,
@@ -250,38 +421,39 @@ class _MetricsSection extends StatelessWidget {
             SizedBox(
               width: metricWidth,
               child: ExerciseMetricCard(
-                label: 'Algılanan nota',
-                value: snapshot.detectedNote.turkishScientificName,
-                caption: 'Şimdilik örnek veri gösteriliyor.',
+                label: l10n.detectedNoteLabel,
+                value: detectedNoteName,
+                caption: l10n.detectedNoteCaption,
                 icon: Icons.music_note_rounded,
               ),
             ),
             SizedBox(
               width: metricWidth,
               child: ExerciseMetricCard(
-                label: 'Algılanan frekans',
-                value: SingleNoteScreen._formatFrequency(
+                label: l10n.detectedFrequencyLabel,
+                value: _SingleNoteScreenState._formatFrequency(
+                  context,
                   snapshot.detectedNote.frequencyHz,
                 ),
-                caption: 'Hedef notaya yakın örnek frekans değeri.',
+                caption: l10n.detectedFrequencyCaption,
                 icon: Icons.tune_rounded,
               ),
             ),
             SizedBox(
               width: metricWidth,
               child: ExerciseMetricCard(
-                label: 'Cent farkı',
-                value: SingleNoteScreen._formatCent(snapshot.centDifference),
-                caption: 'Eksi değer, sesin biraz pes kaldığını gösterir.',
+                label: l10n.centDifferenceLabel,
+                value: _SingleNoteScreenState._formatCent(
+                  context,
+                  snapshot.centDifference,
+                ),
+                caption: l10n.centDifferenceCaption,
                 icon: Icons.speed_rounded,
               ),
             ),
             SizedBox(
               width: metricWidth,
-              child: _ResultCard(
-                resultState: snapshot.resultState,
-                resultMessage: snapshot.resultMessage,
-              ),
+              child: _ResultCard(resultState: snapshot.resultState),
             ),
           ],
         );
@@ -307,6 +479,7 @@ class _TargetSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
 
     return Container(
       width: double.infinity,
@@ -319,14 +492,14 @@ class _TargetSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Duyduğun sesi tekrar et',
+            l10n.singleNoteHeroTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            'Önce hedef sesi dinle, sonra aynı notayı sesinle yakalamayı dene. Nota adı yazmak yerine portedeki konumu gösteriyoruz.',
+            l10n.singleNoteHeroDescription,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
               height: 1.5,
@@ -338,12 +511,12 @@ class _TargetSection extends StatelessWidget {
             runSpacing: 12,
             children: [
               _InfoPill(
-                label: 'Hedef nota',
-                value: 'Porte üzerinde',
+                label: l10n.targetNoteLabel,
+                value: l10n.targetNoteOnStaff,
                 icon: Icons.album_rounded,
               ),
               _InfoPill(
-                label: 'Hedef frekans',
+                label: l10n.targetFrequencyLabel,
                 value: targetFrequency,
                 icon: Icons.waves_rounded,
               ),
@@ -416,15 +589,15 @@ class _InfoPill extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.resultState, required this.resultMessage});
+  const _ResultCard({required this.resultState});
 
   final PitchResultState resultState;
-  final String resultMessage;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
 
     return Card(
       elevation: 0,
@@ -436,7 +609,7 @@ class _ResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Sonuç',
+              l10n.resultTitle,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w700,
@@ -446,7 +619,7 @@ class _ResultCard extends StatelessWidget {
             _ResultScale(activeState: resultState),
             const SizedBox(height: 16),
             Text(
-              resultMessage,
+              resultState.localizedLabel(l10n),
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w800,
@@ -454,7 +627,7 @@ class _ResultCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Pes / Doğru / Tiz göstergesi gerçek analiz eklendiğinde canlı güncellenecek.',
+              l10n.resultPanelDescription,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 height: 1.4,
@@ -474,20 +647,22 @@ class _ResultScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+
     return Row(
       children: [
         _ResultSegment(
-          label: 'Pes',
+          label: l10n.pitchFlat,
           isActive: activeState == PitchResultState.flat,
         ),
         const SizedBox(width: 8),
         _ResultSegment(
-          label: 'Doğru',
+          label: l10n.pitchCorrect,
           isActive: activeState == PitchResultState.correct,
         ),
         const SizedBox(width: 8),
         _ResultSegment(
-          label: 'Tiz',
+          label: l10n.pitchSharp,
           isActive: activeState == PitchResultState.sharp,
         ),
       ],

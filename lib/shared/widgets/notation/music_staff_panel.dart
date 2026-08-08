@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/music/music_clef.dart';
+import '../../../core/music/music_localizations.dart';
 import '../../../core/music/music_clef_selector.dart';
 import '../../../core/music/notation_sequence.dart';
+import '../../../l10n/l10n.dart';
 import 'custom_painter_notation_renderer.dart';
 import 'music_staff_view.dart';
 
@@ -30,6 +32,7 @@ class MusicStaffPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
     final MusicClef resolvedClef =
         clefPreference.fixedClef ??
         MusicClefSelector.selectBestClef(sequence.allNotes);
@@ -56,7 +59,9 @@ class MusicStaffPanel extends StatelessWidget {
                       ? Icons.music_off_rounded
                       : Icons.music_note_rounded,
                 ),
-                label: Text(isExpanded ? 'Porteyi Kapat' : 'Porteyi Aç'),
+                label: Text(
+                  isExpanded ? l10n.staffCloseButton : l10n.staffOpenButton,
+                ),
               ),
             ),
             AnimatedSize(
@@ -70,14 +75,14 @@ class MusicStaffPanel extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Porte Üzerindeki Gösterim',
+                            l10n.staffPanelTitle,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Aynı MIDI notası ses, piyano ve porte tarafından ortak olarak kullanılır.',
+                            l10n.staffPanelDescription,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               height: 1.4,
@@ -89,11 +94,11 @@ class MusicStaffPanel extends StatelessWidget {
                             runSpacing: 10,
                             children: [
                               _InfoChip(
-                                label: 'Çözülen anahtar',
-                                value: _clefLabel(resolvedClef),
+                                label: l10n.resolvedClefLabel,
+                                value: resolvedClef.localizedLabel(l10n),
                               ),
                               _InfoChip(
-                                label: 'Ölçü',
+                                label: l10n.measureLabel,
                                 value: timeSignatureLabel,
                               ),
                             ],
@@ -103,11 +108,11 @@ class MusicStaffPanel extends StatelessWidget {
                             contentPadding: EdgeInsets.zero,
                             value: showActiveHighlights,
                             onChanged: onShowActiveHighlightsChanged,
-                            title: const Text('Çalan notaları portede göster'),
+                            title: Text(l10n.showPlayingNotesOnStaff),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Anahtar seçimi',
+                            l10n.clefSelectionTitle,
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
@@ -123,7 +128,7 @@ class MusicStaffPanel extends StatelessWidget {
                                   MusicClefPreference.bass,
                                 ].map((MusicClefPreference option) {
                                   return ChoiceChip(
-                                    label: Text(option.label),
+                                    label: Text(option.localizedLabel(l10n)),
                                     selected: clefPreference == option,
                                     onSelected: (_) {
                                       onClefPreferenceChanged(option);
@@ -159,15 +164,6 @@ class MusicStaffPanel extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _clefLabel(MusicClef clef) {
-    return switch (clef) {
-      MusicClef.treble => 'Sol Anahtarı',
-      MusicClef.bass => 'Fa Anahtarı',
-      MusicClef.alto => 'Alto Anahtarı',
-      MusicClef.tenor => 'Tenor Anahtarı',
-    };
   }
 }
 

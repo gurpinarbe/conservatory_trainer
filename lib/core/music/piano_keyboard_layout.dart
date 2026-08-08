@@ -76,4 +76,53 @@ abstract final class PianoKeyboardLayout {
     final MusicNote? note = PitchCalculator.midiToNote(visibleNotes.first);
     return range.clampOctave(note?.octave ?? fallbackOctave);
   }
+
+  static PianoNoteRange visibleRangeForOctaveStart(
+    int startOctave, {
+    PianoNoteRange range = supportedRange,
+    int visibleOctaveCount = 2,
+  }) {
+    final int clampedStartOctave = range.clampVisibleStartOctave(
+      startOctave,
+      visibleOctaveCount: visibleOctaveCount,
+    );
+    final int startMidiNoteNumber = ((clampedStartOctave + 1) * 12)
+        .clamp(range.startMidiNoteNumber, range.endMidiNoteNumber)
+        .toInt();
+    final int endOctave =
+        clampedStartOctave +
+        (visibleOctaveCount < 1 ? 1 : visibleOctaveCount) -
+        1;
+    final int endMidiNoteNumber = (((endOctave + 1) * 12) + 11)
+        .clamp(range.startMidiNoteNumber, range.endMidiNoteNumber)
+        .toInt();
+
+    return PianoNoteRange(
+      startMidiNoteNumber: startMidiNoteNumber,
+      endMidiNoteNumber: endMidiNoteNumber,
+    );
+  }
+
+  static int startOctaveForHighlightedNotes(
+    Iterable<int> midiNoteNumbers, {
+    PianoNoteRange range = supportedRange,
+    int fallbackOctave = 4,
+    int visibleOctaveCount = 2,
+  }) {
+    final List<int> visibleNotes =
+        midiNoteNumbers.where(range.containsMidiNoteNumber).toList()..sort();
+
+    if (visibleNotes.isEmpty) {
+      return range.clampVisibleStartOctave(
+        fallbackOctave,
+        visibleOctaveCount: visibleOctaveCount,
+      );
+    }
+
+    final MusicNote? note = PitchCalculator.midiToNote(visibleNotes.first);
+    return range.clampVisibleStartOctave(
+      note?.octave ?? fallbackOctave,
+      visibleOctaveCount: visibleOctaveCount,
+    );
+  }
 }

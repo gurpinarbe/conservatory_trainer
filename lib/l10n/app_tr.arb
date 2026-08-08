@@ -1,0 +1,324 @@
+{
+  "@@locale": "tr",
+  "appTitle": "Konservatuvara Hazırlık",
+  "homePrototypeChip": "İlk prototip",
+  "homeTitle": "Konservatuvara Hazırlık",
+  "homeDescription": "Kulak, melodi, ritim ve ses çalışmalarını tek bir yerde topla.",
+  "exerciseCategoriesTitle": "Egzersiz Kategorileri",
+  "todayPracticeTitle": "Bugünkü Çalışman",
+  "todayPracticePlanName": "12 dakikalık demo plan",
+  "todayPracticePlanDescription": "4 dk tek ses, 4 dk portedeki notayı bul, 4 dk serbest piyano.",
+  "startPracticeButton": "Çalışmaya Başla",
+  "productDifferenceTitle": "Bu uygulamanın odağı",
+  "productDifferenceItemListen": "Sesini dinleyerek perde doğruluğunu ölçer",
+  "productDifferenceItemPianoStaff": "Aynı içeriği piyano ve portede birlikte gösterir",
+  "productDifferenceItemExam": "Konservatuvar ve yetenek sınavı rutinlerine hazırlanır",
+  "settingsTitle": "Dil ve Nota Gösterimi",
+  "settingsDescription": "Arayüz dili ile nota adlandırması birbirinden bağımsız değiştirilebilir. Tercihler şimdilik yalnızca bellek içinde tutulur.",
+  "languageSettingTitle": "Uygulama dili",
+  "languageSystemOption": "Sistem Dilini Kullan",
+  "languageEnglishOption": "English",
+  "languageTurkishOption": "Türkçe",
+  "noteNamingSettingTitle": "Nota adlandırma",
+  "noteNamingSettingDescription": "Bu ayar, arayüz dilini değiştirmeden nota adlarının nasıl gösterileceğini belirler.",
+  "noteNamingFixedDoOption": "Sabit Do",
+  "noteNamingLetterNamesOption": "Harfli Sistem",
+  "noteNamingFixedDoDescription": "Do, Re, Mi, Fa, Sol, La, Si",
+  "noteNamingLetterNamesDescription": "C, D, E, F, G, A, B",
+  "activeLabel": "Aktif",
+  "totalLabel": "Toplam",
+  "correctLabel": "Doğru",
+  "wrongLabel": "Yanlış",
+  "incorrectLabel": "Yanlış",
+  "comingSoon": "Yakında",
+  "statusActive": "Aktif",
+  "openTraining": "Çalışmayı Aç",
+  "viewDetails": "Detayı Gör",
+  "categoryExercisesTitle": "Egzersizler",
+  "exerciseUnavailableMessage": "Bu egzersiz yakında kullanıma açılacak.",
+  "backToHomeButton": "Ana Ekrana Dön",
+  "categoryNotFoundTitle": "Kategori Bulunamadı",
+  "categoryNotFoundMessage": "Bu kategori şu anda tanımlı değil.",
+  "exerciseNotFoundTitle": "Egzersiz Bulunamadı",
+  "exerciseNotFoundMessage": "İstenen egzersiz şu anda tanımlı değil.",
+  "durationMinutes": "{count, plural, =1{1 dk} other{{count} dk}}",
+  "@durationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "questionCount": "{count, plural, =1{1 soru} other{{count} soru}}",
+  "@questionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "availableProgress": "{available} / {total} hazır",
+  "@availableProgress": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryHearAndSingTitle": "Duy ve Söyle",
+  "categoryHearAndSingDescription": "Duyduğunu doğru perdeyle tekrar etmeye ve ses kontrolüne odaklan.",
+  "categoryHearAndTapTitle": "Duy ve Vur",
+  "categoryHearAndTapDescription": "Ritimleri alkış, vuruş veya zamanlama araçlarıyla karşıla.",
+  "categoryHearAndWriteTitle": "Duy ve Yaz",
+  "categoryHearAndWriteDescription": "Duyduğun müziği doğru nota ve sürelerle porteye yerleştir.",
+  "categoryReadAndPerformTitle": "Oku ve Uygula",
+  "categoryReadAndPerformDescription": "Notasyonu oku, notaları tanı ve sesinle ya da piyanoyla uygula.",
+  "categoryExamSimulationTitle": "Sınav Simülasyonu",
+  "categoryExamSimulationDescription": "Gerçek değerlendirmelere daha yakın karma egzersiz akışlarıyla çalış.",
+  "categoryFreePracticeTitle": "Serbest Çalışma",
+  "categoryFreePracticeDescription": "Piyano, porte ve yardımcı araçlarla bireysel tekrar yap.",
+  "difficultyBeginner": "Başlangıç",
+  "difficultyIntermediate": "Orta",
+  "difficultyAdvanced": "İleri",
+  "modeTraining": "Eğitim",
+  "modeExam": "Sınav",
+  "modeFreePractice": "Serbest Çalışma",
+  "requirementMicrophone": "Mikrofon",
+  "requirementPiano": "Piyano",
+  "requirementStaff": "Porte",
+  "requirementRhythmEngine": "Ritim Motoru",
+  "requirementPitchDetection": "Pitch Tespiti",
+  "exerciseSingleNoteTitle": "Tek Ses Tekrarı",
+  "exerciseSingleNoteDescription": "Tek bir hedef sesi duyup aynı notayı sesinle tekrar et.",
+  "exerciseTwoNoteTitle": "Çift Ses Ayırma",
+  "exerciseTwoNoteDescription": "İki sesi ayırt edip her birini ayrı ayrı duymayı çalış.",
+  "exerciseThreeNoteTitle": "Üç Ses Ayırma",
+  "exerciseThreeNoteDescription": "Üç sesli yapıları duyarak ayrı ses çizgilerini fark et.",
+  "exerciseFourNoteTitle": "Dört Ses Ayırma",
+  "exerciseFourNoteDescription": "Akor içindeki dört sesi ayrı ayrı duymaya hazırlan.",
+  "exerciseMelodyRepeatTitle": "Melodi Tekrarı",
+  "exerciseMelodyRepeatDescription": "Kısa melodileri doğru sırayla ve doğru perdeyle tekrar et.",
+  "exerciseIntervalSingingTitle": "Aralık Söyleme",
+  "exerciseIntervalSingingDescription": "Verilen başlangıç notasından hedef aralığı sesinle kur.",
+  "exerciseRhythmRepeatTitle": "Ritim Tekrarı",
+  "exerciseRhythmRepeatDescription": "Duyduğun ritmi aynı akışla geri vurmayı dene.",
+  "exerciseCompleteRhythmTitle": "Ritmi Tamamla",
+  "exerciseCompleteRhythmDescription": "Eksik bırakılan vuruşları doğru değerlerle tamamla.",
+  "exerciseFindBrokenRhythmTitle": "Hatalı Ritmi Bul",
+  "exerciseFindBrokenRhythmDescription": "Doğru örnekle hatalı ritim arasındaki farkı yakala.",
+  "exerciseClapRepeatTitle": "Alkış Tekrarı",
+  "exerciseClapRepeatDescription": "Ritmi alkışla veya vuruşla mikrofondan tekrar et.",
+  "exercisePlaceSingleNoteTitle": "Tek Notayı Porteye Yerleştir",
+  "exercisePlaceSingleNoteDescription": "Duyduğun tek notayı portede doğru yere seç.",
+  "exerciseWriteRhythmTitle": "Ritmi Porteye Yaz",
+  "exerciseWriteRhythmDescription": "Duyduğun ritmi nota süreleriyle ölçüye yerleştir.",
+  "exerciseMelodicDictationTitle": "Melodik Dikte",
+  "exerciseMelodicDictationDescription": "Duyduğun melodiyi notalar ve süreleriyle porteye yaz.",
+  "exercisePlaceChordTitle": "Akoru Porteye Yerleştir",
+  "exercisePlaceChordDescription": "Birlikte duyulan sesleri akor olarak porteye yerleştir.",
+  "exerciseNoteReadingAndWritingTitle": "Nota Okuma ve Yazma",
+  "exerciseNoteReadingAndWritingDescription": "Portede gördüğün notayı adı ve oktavıyla birlikte tanı.",
+  "exerciseSingStaffNoteTitle": "Portedeki Notayı Söyle",
+  "exerciseSingStaffNoteDescription": "Portede verilen notayı doğru perdeyle seslendirmeyi dene.",
+  "exercisePlayOnPianoTitle": "Piyanoda Çal",
+  "exercisePlayOnPianoDescription": "Portede verilen notayı ekrandaki piyanoda doğru tuşla çal.",
+  "exerciseSightSingingTitle": "Deşifre",
+  "exerciseSightSingingDescription": "Yazılı kısa pasajları önceden hazırlanmadan oku ve uygula.",
+  "exerciseSolfegeTitle": "Solfej",
+  "exerciseSolfegeDescription": "Yazılı melodiyi ritim ve perde doğruluğuyla seslendir.",
+  "exerciseExamSimulationTitle": "Sınav Simülasyonu",
+  "exerciseExamSimulationDescription": "Temel işitme ve nota görevlerini tek bir sınav akışında çöz.",
+  "exerciseIntermediateExamTitle": "Orta Seviye Sınav Simülasyonu",
+  "exerciseIntermediateExamDescription": "Daha uzun işitme ve ritim görevlerini tek bir provada birleştir.",
+  "exerciseAdvancedExamTitle": "İleri Seviye Sınav Simülasyonu",
+  "exerciseAdvancedExamDescription": "Çok sesli ve melodik görevleri tek bir ileri seviye sınav akışında topla.",
+  "exerciseCustomExamTitle": "Özel Sınav Oluşturma",
+  "exerciseCustomExamDescription": "Kendi sınav akışını veya öğretmen odaklı çalışma setini oluştur.",
+  "exerciseFreePianoTitle": "Serbest Piyano",
+  "exerciseFreePianoDescription": "Etkileşimli klavyede notaları deneyip serbest tekrar yap.",
+  "exerciseFreeStaffTitle": "Serbest Porte",
+  "exerciseFreeStaffDescription": "Porte yerleşimini puanlama olmadan incele.",
+  "exerciseMetronomeTitle": "Metronom",
+  "exerciseMetronomeDescription": "Sabit tempo ile bireysel ritim çalışması yap.",
+  "exerciseTunerTitle": "Akort Cihazı",
+  "exerciseTunerDescription": "Ses yüksekliğini anlık izleyip perde doğruluğunu kontrol et.",
+  "exerciseVocalRangeTestTitle": "Ses Aralığı Testi",
+  "exerciseVocalRangeTestDescription": "Rahat alt ve üst ses sınırını ölçmeye hazırlan.",
+  "singleNoteAppBarTitle": "Tek Ses Tekrarı",
+  "singleNoteHeroTitle": "Duyduğun sesi tekrar et",
+  "singleNoteHeroDescription": "Önce hedef sesi dinle, sonra aynı notayı sesinle yakalamayı dene. Hedef nota adı doğrudan yazılmak yerine portede gösterilir.",
+  "targetNoteLabel": "Hedef nota",
+  "targetNoteOnStaff": "Porte üzerinde",
+  "targetFrequencyLabel": "Hedef frekans",
+  "listenButton": "Sesi Dinle",
+  "singStartButton": "Söylemeye Başla",
+  "detectedNoteLabel": "Algılanan nota",
+  "detectedNoteCaption": "Şimdilik örnek veri gösteriliyor.",
+  "detectedFrequencyLabel": "Algılanan frekans",
+  "detectedFrequencyCaption": "Hedef notaya yakın örnek frekans değeri.",
+  "centDifferenceLabel": "Cent farkı",
+  "centDifferenceCaption": "Eksi değer, sesinin biraz pes kaldığını gösterir.",
+  "resultTitle": "Sonuç",
+  "resultPanelDescription": "Pes / Doğru / Tiz göstergesi gerçek analiz eklendiğinde canlı güncellenecek.",
+  "pitchFlat": "Biraz pes",
+  "pitchCorrect": "Doğru",
+  "pitchSharp": "Biraz tiz",
+  "previewSoundPlayingMessage": "Hedef ses örneği çalınıyor.",
+  "previewSoundShowingMessage": "Hedef ses gösteriliyor. {audioStatus}",
+  "@previewSoundShowingMessage": {
+    "placeholders": {
+      "audioStatus": {}
+    }
+  },
+  "microphonePermissionDeniedMessage": "Mikrofon izni verilmedi. Bu egzersiz için önce izin vermen gerekecek.",
+  "recordPreviewMessage": "Mikrofondan ses alma akışı hazır, ancak sesini notaya çeviren gerçek analiz motoru henüz eklenmedi. Şimdilik örnek sonuçlar gösteriliyor.",
+  "demoSequencePlayingMessage": "Do-Mi-Sol demosu başlatıldı.",
+  "demoSequenceShowingMessage": "Do-Mi-Sol demosu gösteriliyor. {audioStatus}",
+  "@demoSequenceShowingMessage": {
+    "placeholders": {
+      "audioStatus": {}
+    }
+  },
+  "pianoOpenButton": "Piyanoyu Aç",
+  "pianoCloseButton": "Piyanoyu Kapat",
+  "showExerciseNotesOnPiano": "Egzersiz notalarını piyanoda göster",
+  "followHighlightByOctave": "Vurguyu oktava göre takip et",
+  "showNoteNamesOnKeys": "Nota isimlerini tuşlarda göster",
+  "playReferenceNoteButton": "{noteName} Göster ve Çal",
+  "@playReferenceNoteButton": {
+    "placeholders": {
+      "noteName": {}
+    }
+  },
+  "playMajorChordButton": "{chordName} Göster ve Çal",
+  "@playMajorChordButton": {
+    "placeholders": {
+      "chordName": {}
+    }
+  },
+  "majorChordName": "{rootName} majör akoru",
+  "@majorChordName": {
+    "placeholders": {
+      "rootName": {}
+    }
+  },
+  "developmentDemoButton": "Do-Mi-Sol demosunu göster",
+  "previousOctave": "Önceki Oktav",
+  "nextOctave": "Sonraki Oktav",
+  "octaveLabel": "{octave}. Oktav",
+  "@octaveLabel": {
+    "placeholders": {
+      "octave": {
+        "type": "int"
+      }
+    }
+  },
+  "lastPlayedNoteTitle": "Son basılan nota",
+  "noNotePlayedYet": "Henüz bir nota çalmadın",
+  "lastPlayedNoteDetails": "Uluslararası adı: {internationalName} • MIDI {midi} • {frequency}",
+  "@lastPlayedNoteDetails": {
+    "placeholders": {
+      "internationalName": {},
+      "midi": {
+        "type": "int"
+      },
+      "frequency": {}
+    }
+  },
+  "lastPlayedNoteHint": "Tuşa bastığında nota adı, oktavı, MIDI numarası ve frekansı burada görünecek.",
+  "pianoSoundReady": "Piyano sesi hazır.",
+  "invalidMidiNoteMessage": "Geçerli bir MIDI nota numarası kullanılamadı.",
+  "pianoSoundFontMissingMessage": "Piyano ses dosyası henüz eklenmedi.",
+  "pianoSoundFontInvalidMessage": "Piyano ses dosyası bozuk veya geçersiz.",
+  "pianoEngineErrorMessage": "Piyano sesi şu anda hazırlanamadı.",
+  "staffOpenButton": "Porteyi Aç",
+  "staffCloseButton": "Porteyi Kapat",
+  "staffPanelTitle": "Porte Gösterimi",
+  "staffPanelDescription": "Aynı MIDI notası ses egzersizi, piyano ve porte görünümü tarafından ortak kullanılır.",
+  "resolvedClefLabel": "Çözülen anahtar",
+  "measureLabel": "Ölçü",
+  "showPlayingNotesOnStaff": "Çalan notaları portede göster",
+  "clefSelectionTitle": "Anahtar seçimi",
+  "clefAuto": "Otomatik",
+  "clefTreble": "Sol Anahtarı",
+  "clefBass": "Fa Anahtarı",
+  "clefAlto": "Alto Anahtarı",
+  "clefTenor": "Tenor Anahtarı",
+  "restLabel": "Sus",
+  "staffNoteSemantics": "{noteName} notası",
+  "@staffNoteSemantics": {
+    "placeholders": {
+      "noteName": {}
+    }
+  },
+  "noteAccessibilityNatural": "{noteName} {octave}",
+  "@noteAccessibilityNatural": {
+    "placeholders": {
+      "noteName": {},
+      "octave": {}
+    }
+  },
+  "noteAccessibilityAccidental": "{noteName} {accidental} {octave}",
+  "@noteAccessibilityAccidental": {
+    "placeholders": {
+      "noteName": {},
+      "accidental": {},
+      "octave": {}
+    }
+  },
+  "accidentalSharpWord": "diyez",
+  "accidentalFlatWord": "bemol",
+  "staffQuizAppBarTitle": "Portedeki Notayı Bul",
+  "staffQuizIntroTitle": "Notayı Gör ve Adını Bul",
+  "staffQuizIntroDescription": "Şimdilik sorular sol anahtarında bir oktavlık aralıkta üretiliyor.",
+  "staffQuizPromptTitle": "Portedeki notayı seç",
+  "staffQuizPromptDescription": "Bu egzersizde oktav bilgisi de değerlendirilir.",
+  "newQuestionButton": "Yeni Soru",
+  "correctAnswerTitle": "Doğru cevap",
+  "wrongAnswerTitle": "Yanlış cevap",
+  "staffQuizCorrectMessage": "Notayı doğru oktavla birlikte tanıdın.",
+  "staffQuizWrongMessage": "Doğru cevap {noteName} olmalıydı.",
+  "@staffQuizWrongMessage": {
+    "placeholders": {
+      "noteName": {}
+    }
+  },
+  "noteValueLessonAppBarTitle": "Nota Değerlerini Öğren",
+  "noteValueLessonHeaderTitle": "Temel Nota Süreleri",
+  "noteValueLessonHeaderDescription": "Ön izlemeler 60 BPM üzerinden çalışır. Şimdilik süre vurgusu ve örnek ses birlikte kullanılıyor.",
+  "noteValueBeatsLabel": "4/4 içinde {beats} vuruş",
+  "@noteValueBeatsLabel": {
+    "placeholders": {
+      "beats": {}
+    }
+  },
+  "examplePattern": "Örnek: {example}",
+  "@examplePattern": {
+    "placeholders": {
+      "example": {}
+    }
+  },
+  "listenShortButton": "Dinle",
+  "noteValueWhole": "Birlik nota",
+  "noteValueHalf": "İkilik nota",
+  "noteValueQuarter": "Dörtlük nota",
+  "noteValueEighth": "Sekizlik nota",
+  "noteValueSixteenth": "On altılık nota",
+  "noteValueDottedHalf": "Noktalı ikilik",
+  "noteValueDottedQuarter": "Noktalı dörtlük",
+  "noteValueDottedEighth": "Noktalı sekizlik",
+  "noteValueExampleWhole": "Ta-a-a-a",
+  "noteValueExampleHalf": "Ta-a",
+  "noteValueExampleQuarter": "Ta",
+  "noteValueExampleEighth": "Ti-ti",
+  "melodyWritingAppBarTitle": "Melodiyi Porteye Yaz",
+  "melodyWritingIntro": "Bu ekran ileride sürükle-bırak nota yerleştirme için kullanılacak.",
+  "melodyWritingDescription": "Planlanan araçlar: nota değeri seçimi, sus ekleme, yanlış notayı silme, sağa-sola taşıma ve ölçü bütünlüğü kontrolü.",
+  "freePianoAppBarTitle": "Serbest Piyano",
+  "freePianoHeaderTitle": "Serbest Tekrar Alanı",
+  "freePianoHeaderDescription": "Bu alanı notaları denemek ve klavyedeki yerlerini ezberlemek için kullan. Gerçek egzersiz puanlaması burada çalışmaz.",
+  "productVisionShort": "Özellikle konservatuvar ve müzik yetenek sınavlarına hazırlık için tasarlanmış, çok dilli ve ses odaklı kişisel müzik çalışma koçu."
+}

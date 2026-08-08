@@ -1,0 +1,324 @@
+{
+  "@@locale": "en",
+  "appTitle": "Conservatory Trainer",
+  "homePrototypeChip": "Early prototype",
+  "homeTitle": "Conservatory Trainer",
+  "homeDescription": "Keep ear training, melody, rhythm, and voice practice in one place.",
+  "exerciseCategoriesTitle": "Exercise Categories",
+  "todayPracticeTitle": "Today's Practice",
+  "todayPracticePlanName": "12-minute demo plan",
+  "todayPracticePlanDescription": "4 min single note, 4 min find the staff note, 4 min free piano.",
+  "startPracticeButton": "Start Practice",
+  "productDifferenceTitle": "What this app focuses on",
+  "productDifferenceItemListen": "Measures pitch accuracy by listening to your voice",
+  "productDifferenceItemPianoStaff": "Shows the same material on piano and staff together",
+  "productDifferenceItemExam": "Builds toward conservatory and aptitude exam routines",
+  "settingsTitle": "Language and Notation",
+  "settingsDescription": "Interface language and note naming can be changed independently. Preferences are kept in memory for now.",
+  "languageSettingTitle": "App language",
+  "languageSystemOption": "Use System Language",
+  "languageEnglishOption": "English",
+  "languageTurkishOption": "Turkish",
+  "noteNamingSettingTitle": "Note naming",
+  "noteNamingSettingDescription": "This setting changes how note names are shown without changing the interface language.",
+  "noteNamingFixedDoOption": "Fixed Do",
+  "noteNamingLetterNamesOption": "Letter Names",
+  "noteNamingFixedDoDescription": "Do, Re, Mi, Fa, Sol, La, Si",
+  "noteNamingLetterNamesDescription": "C, D, E, F, G, A, B",
+  "activeLabel": "Active",
+  "totalLabel": "Total",
+  "correctLabel": "Correct",
+  "wrongLabel": "Incorrect",
+  "incorrectLabel": "Incorrect",
+  "comingSoon": "Coming Soon",
+  "statusActive": "Active",
+  "openTraining": "Open Exercise",
+  "viewDetails": "View Details",
+  "categoryExercisesTitle": "Exercises",
+  "exerciseUnavailableMessage": "This exercise will be available soon.",
+  "backToHomeButton": "Back to Home",
+  "categoryNotFoundTitle": "Category Not Found",
+  "categoryNotFoundMessage": "This category is not defined right now.",
+  "exerciseNotFoundTitle": "Exercise Not Found",
+  "exerciseNotFoundMessage": "The requested exercise is not defined right now.",
+  "durationMinutes": "{count, plural, =1{1 min} other{{count} min}}",
+  "@durationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "questionCount": "{count, plural, =1{1 question} other{{count} questions}}",
+  "@questionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "availableProgress": "{available} / {total} ready",
+  "@availableProgress": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryHearAndSingTitle": "Hear and Sing",
+  "categoryHearAndSingDescription": "Repeat what you hear with accurate pitch and vocal control.",
+  "categoryHearAndTapTitle": "Hear and Tap",
+  "categoryHearAndTapDescription": "Answer rhythmic material with claps, taps, or timing controls.",
+  "categoryHearAndWriteTitle": "Hear and Write",
+  "categoryHearAndWriteDescription": "Place what you hear onto the staff with correct notes and durations.",
+  "categoryReadAndPerformTitle": "Read and Perform",
+  "categoryReadAndPerformDescription": "Read notation, identify notes, and perform them with voice or piano.",
+  "categoryExamSimulationTitle": "Exam Simulation",
+  "categoryExamSimulationDescription": "Practice mixed exercise flows that feel closer to real assessments.",
+  "categoryFreePracticeTitle": "Free Practice",
+  "categoryFreePracticeDescription": "Use the piano, staff, and helper tools for self-directed repetition.",
+  "difficultyBeginner": "Beginner",
+  "difficultyIntermediate": "Intermediate",
+  "difficultyAdvanced": "Advanced",
+  "modeTraining": "Training",
+  "modeExam": "Exam",
+  "modeFreePractice": "Free Practice",
+  "requirementMicrophone": "Microphone",
+  "requirementPiano": "Piano",
+  "requirementStaff": "Staff",
+  "requirementRhythmEngine": "Rhythm Engine",
+  "requirementPitchDetection": "Pitch Detection",
+  "exerciseSingleNoteTitle": "Single Note Repetition",
+  "exerciseSingleNoteDescription": "Hear one target pitch and repeat the same note with your voice.",
+  "exerciseTwoNoteTitle": "Two-Note Separation",
+  "exerciseTwoNoteDescription": "Distinguish two notes and focus on hearing each line separately.",
+  "exerciseThreeNoteTitle": "Three-Note Separation",
+  "exerciseThreeNoteDescription": "Recognize three-note textures and separate the inner lines by ear.",
+  "exerciseFourNoteTitle": "Four-Note Separation",
+  "exerciseFourNoteDescription": "Prepare to hear and isolate four-note chord structures.",
+  "exerciseMelodyRepeatTitle": "Melody Repetition",
+  "exerciseMelodyRepeatDescription": "Repeat short melodies in the correct order and pitch.",
+  "exerciseIntervalSingingTitle": "Interval Singing",
+  "exerciseIntervalSingingDescription": "Build the target interval from a given starting note with your voice.",
+  "exerciseRhythmRepeatTitle": "Rhythm Repetition",
+  "exerciseRhythmRepeatDescription": "Answer the rhythm you hear with the same timing flow.",
+  "exerciseCompleteRhythmTitle": "Complete the Rhythm",
+  "exerciseCompleteRhythmDescription": "Fill in the missing beats with the correct note values.",
+  "exerciseFindBrokenRhythmTitle": "Find the Broken Rhythm",
+  "exerciseFindBrokenRhythmDescription": "Spot the difference between the correct pattern and the broken rhythm.",
+  "exerciseClapRepeatTitle": "Clap Repetition",
+  "exerciseClapRepeatDescription": "Repeat the rhythm through claps or taps captured by the microphone.",
+  "exercisePlaceSingleNoteTitle": "Place the Note on the Staff",
+  "exercisePlaceSingleNoteDescription": "Choose the correct staff position for the single note you hear.",
+  "exerciseWriteRhythmTitle": "Write the Rhythm on the Staff",
+  "exerciseWriteRhythmDescription": "Place heard rhythms into a measure using note values.",
+  "exerciseMelodicDictationTitle": "Melodic Dictation",
+  "exerciseMelodicDictationDescription": "Write the melody you hear onto the staff with notes and durations.",
+  "exercisePlaceChordTitle": "Place the Chord on the Staff",
+  "exercisePlaceChordDescription": "Write simultaneous notes onto the staff as a chord.",
+  "exerciseNoteReadingAndWritingTitle": "Note Reading and Writing",
+  "exerciseNoteReadingAndWritingDescription": "Identify the note you see on the staff together with its octave.",
+  "exerciseSingStaffNoteTitle": "Sing the Staff Note",
+  "exerciseSingStaffNoteDescription": "Try to sing the note shown on the staff with the correct pitch.",
+  "exercisePlayOnPianoTitle": "Play on Piano",
+  "exercisePlayOnPianoDescription": "Play the note shown on the staff on the on-screen piano.",
+  "exerciseSightSingingTitle": "Sight Singing",
+  "exerciseSightSingingDescription": "Read short written passages and perform them without prior rehearsal.",
+  "exerciseSolfegeTitle": "Solfege",
+  "exerciseSolfegeDescription": "Sing the written melody with correct rhythm and pitch.",
+  "exerciseExamSimulationTitle": "Exam Simulation",
+  "exerciseExamSimulationDescription": "Solve core listening and notation tasks in a single exam-like flow.",
+  "exerciseIntermediateExamTitle": "Intermediate Exam Simulation",
+  "exerciseIntermediateExamDescription": "Mix longer listening and rhythm tasks into one guided rehearsal.",
+  "exerciseAdvancedExamTitle": "Advanced Exam Simulation",
+  "exerciseAdvancedExamDescription": "Combine polyphonic and melodic tasks in one advanced exam flow.",
+  "exerciseCustomExamTitle": "Custom Exam Builder",
+  "exerciseCustomExamDescription": "Create your own assessment flow or teacher-led practice set.",
+  "exerciseFreePianoTitle": "Free Piano",
+  "exerciseFreePianoDescription": "Explore notes and repeat freely on the interactive keyboard.",
+  "exerciseFreeStaffTitle": "Free Staff",
+  "exerciseFreeStaffDescription": "Review note placement logic on the staff without scoring.",
+  "exerciseMetronomeTitle": "Metronome",
+  "exerciseMetronomeDescription": "Practice steady tempo on your own.",
+  "exerciseTunerTitle": "Tuner",
+  "exerciseTunerDescription": "Monitor pitch height in real time and check intonation.",
+  "exerciseVocalRangeTestTitle": "Vocal Range Test",
+  "exerciseVocalRangeTestDescription": "Prepare to measure your comfortable low and high singing range.",
+  "singleNoteAppBarTitle": "Single Note Repetition",
+  "singleNoteHeroTitle": "Repeat the note you hear",
+  "singleNoteHeroDescription": "Listen to the target note first, then try to match it with your voice. The target is shown on the staff instead of writing its name directly.",
+  "targetNoteLabel": "Target note",
+  "targetNoteOnStaff": "Shown on the staff",
+  "targetFrequencyLabel": "Target frequency",
+  "listenButton": "Listen",
+  "singStartButton": "Start Singing",
+  "detectedNoteLabel": "Detected note",
+  "detectedNoteCaption": "Sample data is shown for now.",
+  "detectedFrequencyLabel": "Detected frequency",
+  "detectedFrequencyCaption": "A sample frequency close to the target note.",
+  "centDifferenceLabel": "Cent difference",
+  "centDifferenceCaption": "A negative value means your note is a little flat.",
+  "resultTitle": "Result",
+  "resultPanelDescription": "The flat / correct / sharp indicator will update live once real analysis is added.",
+  "pitchFlat": "Slightly flat",
+  "pitchCorrect": "Correct",
+  "pitchSharp": "Slightly sharp",
+  "previewSoundPlayingMessage": "The target pitch sample is playing.",
+  "previewSoundShowingMessage": "The target pitch is being shown. {audioStatus}",
+  "@previewSoundShowingMessage": {
+    "placeholders": {
+      "audioStatus": {}
+    }
+  },
+  "microphonePermissionDeniedMessage": "Microphone permission was denied. You need to allow it before using this exercise.",
+  "recordPreviewMessage": "The microphone flow is ready, but the real pitch analysis engine that converts your voice into notes has not been added yet. Sample results are shown for now.",
+  "demoSequencePlayingMessage": "The Do-Mi-Sol demo has started.",
+  "demoSequenceShowingMessage": "The Do-Mi-Sol demo is being shown. {audioStatus}",
+  "@demoSequenceShowingMessage": {
+    "placeholders": {
+      "audioStatus": {}
+    }
+  },
+  "pianoOpenButton": "Open Piano",
+  "pianoCloseButton": "Close Piano",
+  "showExerciseNotesOnPiano": "Show exercise notes on the piano",
+  "followHighlightByOctave": "Follow highlights by octave",
+  "showNoteNamesOnKeys": "Show note names on keys",
+  "playReferenceNoteButton": "Show and Play {noteName}",
+  "@playReferenceNoteButton": {
+    "placeholders": {
+      "noteName": {}
+    }
+  },
+  "playMajorChordButton": "Show and Play {chordName}",
+  "@playMajorChordButton": {
+    "placeholders": {
+      "chordName": {}
+    }
+  },
+  "majorChordName": "{rootName} major chord",
+  "@majorChordName": {
+    "placeholders": {
+      "rootName": {}
+    }
+  },
+  "developmentDemoButton": "Show the Do-Mi-Sol demo",
+  "previousOctave": "Previous Octave",
+  "nextOctave": "Next Octave",
+  "octaveLabel": "Octave {octave}",
+  "@octaveLabel": {
+    "placeholders": {
+      "octave": {
+        "type": "int"
+      }
+    }
+  },
+  "lastPlayedNoteTitle": "Last played note",
+  "noNotePlayedYet": "You have not played a note yet",
+  "lastPlayedNoteDetails": "International: {internationalName} • MIDI {midi} • {frequency}",
+  "@lastPlayedNoteDetails": {
+    "placeholders": {
+      "internationalName": {},
+      "midi": {
+        "type": "int"
+      },
+      "frequency": {}
+    }
+  },
+  "lastPlayedNoteHint": "When you press a key, its name, octave, MIDI number, and frequency will appear here.",
+  "pianoSoundReady": "Piano sound is ready.",
+  "invalidMidiNoteMessage": "A valid MIDI note number could not be used.",
+  "pianoSoundFontMissingMessage": "The piano sound file has not been added yet.",
+  "pianoSoundFontInvalidMessage": "The piano sound file is invalid or corrupted.",
+  "pianoEngineErrorMessage": "Piano sound could not be prepared right now.",
+  "staffOpenButton": "Open Staff",
+  "staffCloseButton": "Close Staff",
+  "staffPanelTitle": "Staff View",
+  "staffPanelDescription": "The same MIDI note is shared between the voice exercise, piano, and staff view.",
+  "resolvedClefLabel": "Resolved clef",
+  "measureLabel": "Meter",
+  "showPlayingNotesOnStaff": "Show playing notes on the staff",
+  "clefSelectionTitle": "Clef selection",
+  "clefAuto": "Automatic",
+  "clefTreble": "Treble Clef",
+  "clefBass": "Bass Clef",
+  "clefAlto": "Alto Clef",
+  "clefTenor": "Tenor Clef",
+  "restLabel": "Rest",
+  "staffNoteSemantics": "{noteName} note",
+  "@staffNoteSemantics": {
+    "placeholders": {
+      "noteName": {}
+    }
+  },
+  "noteAccessibilityNatural": "{noteName} {octave}",
+  "@noteAccessibilityNatural": {
+    "placeholders": {
+      "noteName": {},
+      "octave": {}
+    }
+  },
+  "noteAccessibilityAccidental": "{noteName} {accidental} {octave}",
+  "@noteAccessibilityAccidental": {
+    "placeholders": {
+      "noteName": {},
+      "accidental": {},
+      "octave": {}
+    }
+  },
+  "accidentalSharpWord": "sharp",
+  "accidentalFlatWord": "flat",
+  "staffQuizAppBarTitle": "Find the Note on the Staff",
+  "staffQuizIntroTitle": "See the Note and Name It",
+  "staffQuizIntroDescription": "For now, questions are generated in treble clef within a one-octave range.",
+  "staffQuizPromptTitle": "Choose the note on the staff",
+  "staffQuizPromptDescription": "This exercise also evaluates the octave.",
+  "newQuestionButton": "New Question",
+  "correctAnswerTitle": "Correct answer",
+  "wrongAnswerTitle": "Incorrect answer",
+  "staffQuizCorrectMessage": "You identified the note with the correct octave.",
+  "staffQuizWrongMessage": "The correct answer should have been {noteName}.",
+  "@staffQuizWrongMessage": {
+    "placeholders": {
+      "noteName": {}
+    }
+  },
+  "noteValueLessonAppBarTitle": "Learn Note Values",
+  "noteValueLessonHeaderTitle": "Basic Note Durations",
+  "noteValueLessonHeaderDescription": "Previews run at 60 BPM. For now, duration emphasis and sample sound are used together.",
+  "noteValueBeatsLabel": "{beats} beats in 4/4",
+  "@noteValueBeatsLabel": {
+    "placeholders": {
+      "beats": {}
+    }
+  },
+  "examplePattern": "Example: {example}",
+  "@examplePattern": {
+    "placeholders": {
+      "example": {}
+    }
+  },
+  "listenShortButton": "Listen",
+  "noteValueWhole": "Whole note",
+  "noteValueHalf": "Half note",
+  "noteValueQuarter": "Quarter note",
+  "noteValueEighth": "Eighth note",
+  "noteValueSixteenth": "Sixteenth note",
+  "noteValueDottedHalf": "Dotted half note",
+  "noteValueDottedQuarter": "Dotted quarter note",
+  "noteValueDottedEighth": "Dotted eighth note",
+  "noteValueExampleWhole": "Ta-a-a-a",
+  "noteValueExampleHalf": "Ta-a",
+  "noteValueExampleQuarter": "Ta",
+  "noteValueExampleEighth": "Ti-ti",
+  "melodyWritingAppBarTitle": "Write the Melody on the Staff",
+  "melodyWritingIntro": "This screen will be used later for drag-and-drop note placement.",
+  "melodyWritingDescription": "Planned tools: note value selection, rest insertion, deleting the wrong note, moving left and right, and measure validation.",
+  "freePianoAppBarTitle": "Free Piano",
+  "freePianoHeaderTitle": "Free Practice Area",
+  "freePianoHeaderDescription": "Use this area to try notes and memorize their keyboard positions. Real exercise scoring does not run here.",
+  "productVisionShort": "Multilingual, voice-focused personal music training coach designed especially for conservatory and music aptitude exam preparation."
+}

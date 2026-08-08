@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/audio_providers.dart';
+import '../../../core/audio/audio_playback_service.dart';
 import '../../../core/audio/audio_recording_service.dart';
+import '../../../core/audio/piano_audio_service.dart';
 import '../../../core/music/music_clef.dart';
 import '../../../core/music/music_note.dart';
 import '../../../core/music/notation_event.dart';
 import '../../../core/music/notation_sequence.dart';
+import '../../../core/music/pitch_calculator.dart';
 import '../domain/single_note_exercise_state.dart';
 import 'single_note_preview_service.dart';
 
@@ -23,65 +25,97 @@ final singleNoteExerciseControllerProvider =
       SingleNoteExerciseController.new,
     );
 
+enum SingleNoteUserFeedback {
+  previewSoundPlaying,
+  previewSoundShowing,
+  microphonePermissionDenied,
+  recordPreview,
+  demoSequencePlaying,
+  demoSequenceShowing,
+}
+
 class SingleNoteExerciseController extends Notifier<SingleNoteExerciseState> {
   late final SingleNotePreviewService _previewService = ref.read(
     singleNotePreviewServiceProvider,
   );
-  late final AudioPlaybackService _playbackService = ref.read(
+  late final PianoAudioService _pianoAudioService = ref.read(
+    pianoAudioServiceProvider,
+  );
+  late final AudioPlaybackService _audioPlaybackService = ref.read(
     audioPlaybackServiceProvider,
   );
   late final AudioRecordingService _recordingService = ref.read(
     audioRecordingServiceProvider,
   );
 
-  int _highlightSessionId = 0;
+  int _automatedPlaybackSessionId = 0;
 
   @override
   SingleNoteExerciseState build() {
     ref.onDispose(() {
-      _highlightSessionId++;
+      _automatedPlaybackSessionId++;
     });
 
-    return SingleNoteExerciseState(
+    final SingleNoteExerciseState initialState = SingleNoteExerciseState(
       snapshot: _previewService.buildSnapshot(),
       notationSequence: _previewService.buildListenSequence(),
       highlightedMidiNotes: const <int>{},
+      pressedMidiNotes: const <int>{},
       showNotesOnPiano: true,
       showNotesOnStaff: true,
       autoFollowOctave: true,
       isStaffPanelExpanded: true,
       staffClefPreference: MusicClefPreference.auto,
+      isPianoSoundFontLoaded: false,
+      pianoStatusType: null,
     );
+
+    unawaited(_initializePianoAudio());
+    return initialState;
   }
 
-  Future<String> handleListenPressed() async {
+  Future<SingleNoteUserFeedback> handleListenPressed() async {
     final NotationSequence sequence = _previewService.buildListenSequence();
     state = state.copyWith(
       notationSequence: sequence.withVisualStates(const <String>{}),
     );
     unawaited(_playNotationSequence(sequence, bpm: 60));
-    return 'Hedef ses örneği çalınıyor.';
+    return SingleNoteUserFeedback.previewSoundPlaying;
   }
 
-  Future<String> handleRecordPressed() async {
+  Future<SingleNoteUserFeedback> handleRecordPressed() async {
     final MicrophonePermissionStatus permissionStatus = await _recordingService
         .requestMicrophonePermission();
 
     if (permissionStatus != MicrophonePermissionStatus.granted) {
-      return 'Mikrofon izni verilmedi. Bu egzersiz için önce izin vermen gerekecek.';
+      return SingleNoteUserFeedback.microphonePermissionDenied;
     }
 
-    return _previewService.recordPreviewMessage;
+    return SingleNoteUserFeedback.recordPreview;
   }
 
-  Future<String> playDevelopmentDemoSequence() async {
+  Future<SingleNoteUserFeedback> playDevelopmentDemoSequence() async {
     final NotationSequence sequence = _previewService
         .buildDevelopmentDemoSequence();
     state = state.copyWith(
       notationSequence: sequence.withVisualStates(const <String>{}),
     );
     unawaited(_playNotationSequence(sequence, bpm: 60));
-    return 'Do-Mi-Sol demosu başlatıldı.';
+    return SingleNoteUserFeedback.demoSequencePlaying;
+  }
+
+  Future<void> playLa4Demo() async {
+    await _playHighlightedPianoNotes(const <int>{
+      69,
+    }, lastPlayedNote: PitchCalculator.midiToNote(69));
+  }
+
+  Future<void> playCMajorChordDemo() async {
+    await _playHighlightedPianoNotes(const <int>{
+      60,
+      64,
+      67,
+    }, lastPlayedNote: PitchCalculator.midiToNote(67));
   }
 
   void setShowNotesOnPiano(bool value) {
@@ -104,25 +138,109 @@ class SingleNoteExerciseController extends Notifier<SingleNoteExerciseState> {
     state = state.copyWith(staffClefPreference: value);
   }
 
-  void handleNotePressed(MusicNote note) {
-    state = state.copyWith(lastPlayedNote: note);
-    unawaited(_playbackService.playNote(note));
+  Future<void> handlePianoNotePressed(int midiNoteNumber) async {
+    final MusicNote? note = PitchCalculator.midiToNote(midiNoteNumber);
+    if (note == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      pressedMidiNotes: Set<int>.unmodifiable(<int>{
+        ...state.pressedMidiNotes,
+        midiNoteNumber,
+      }),
+      lastPlayedNote: note,
+    );
+
+    final PianoAudioResult result = await _pianoAudioService.playNote(
+      midiNoteNumber,
+    );
+    _syncPianoAudioState(result);
+    if (!result.isSuccess) {
+      await _audioPlaybackService.playNote(note);
+    }
+  }
+
+  Future<void> handlePianoNoteReleased(int midiNoteNumber) async {
+    state = state.copyWith(
+      pressedMidiNotes: Set<int>.unmodifiable(
+        state.pressedMidiNotes
+            .where((int note) => note != midiNoteNumber)
+            .toSet(),
+      ),
+    );
+
+    final PianoAudioResult result = await _pianoAudioService.stopNote(
+      midiNoteNumber,
+    );
+    _syncPianoAudioState(result);
+  }
+
+  Future<void> _initializePianoAudio() async {
+    final PianoAudioResult initializeResult = await _pianoAudioService
+        .initialize();
+    _syncPianoAudioState(initializeResult);
+
+    final PianoAudioResult loadResult = await _pianoAudioService.loadSoundFont(
+      defaultPianoSoundFontAssetPath,
+    );
+    _syncPianoAudioState(loadResult);
+  }
+
+  Future<void> _playHighlightedPianoNotes(
+    Set<int> midiNotes, {
+    required MusicNote? lastPlayedNote,
+  }) async {
+    final int sessionId = ++_automatedPlaybackSessionId;
+    await _stopMidiNotes(state.highlightedMidiNotes);
+
+    state = state.copyWith(
+      highlightedMidiNotes: Set<int>.unmodifiable(midiNotes),
+      lastPlayedNote: lastPlayedNote,
+    );
+
+    final PianoAudioResult result = await _pianoAudioService.playChord(
+      midiNotes,
+    );
+    _syncPianoAudioState(result);
+    if (!result.isSuccess) {
+      await _playFallbackNotes(
+        midiNotes.map(PitchCalculator.midiToNote).whereType<MusicNote>(),
+      );
+    }
+
+    await Future<void>.delayed(const Duration(seconds: 1));
+    if (sessionId != _automatedPlaybackSessionId) {
+      return;
+    }
+
+    await _stopMidiNotes(midiNotes);
+    if (sessionId != _automatedPlaybackSessionId) {
+      return;
+    }
+
+    state = state.copyWith(
+      highlightedMidiNotes: const <int>{},
+      notationSequence: state.notationSequence.withVisualStates(
+        const <String>{},
+      ),
+    );
   }
 
   Future<void> _playNotationSequence(
     NotationSequence sequence, {
     required int bpm,
   }) async {
-    final int sessionId = ++_highlightSessionId;
+    final int sessionId = ++_automatedPlaybackSessionId;
     final List<_NotationPlaybackStep> steps = _buildPlaybackSteps(
       sequence,
       bpm: bpm,
     );
 
-    await _playbackService.stop();
+    await _stopMidiNotes(state.highlightedMidiNotes);
 
     for (final _NotationPlaybackStep step in steps) {
-      if (sessionId != _highlightSessionId) {
+      if (sessionId != _automatedPlaybackSessionId) {
         return;
       }
 
@@ -132,13 +250,22 @@ class SingleNoteExerciseController extends Notifier<SingleNoteExerciseState> {
         lastPlayedNote: step.lastPlayedNote,
       );
 
-      for (final MusicNote note in step.notes) {
-        unawaited(_playbackService.playNote(note));
+      final PianoAudioResult result = await _pianoAudioService.playChord(
+        step.midiNoteNumbers,
+      );
+      _syncPianoAudioState(result);
+      if (!result.isSuccess) {
+        await _playFallbackNotes(step.notes);
       }
 
       await Future<void>.delayed(step.duration);
 
-      if (sessionId != _highlightSessionId) {
+      if (sessionId != _automatedPlaybackSessionId) {
+        return;
+      }
+
+      await _stopMidiNotes(step.midiNoteNumbers);
+      if (sessionId != _automatedPlaybackSessionId) {
         return;
       }
 
@@ -149,10 +276,42 @@ class SingleNoteExerciseController extends Notifier<SingleNoteExerciseState> {
     }
   }
 
+  Future<void> _stopMidiNotes(Iterable<int> midiNoteNumbers) async {
+    for (final int midiNoteNumber in midiNoteNumbers) {
+      final PianoAudioResult result = await _pianoAudioService.stopNote(
+        midiNoteNumber,
+      );
+      _syncPianoAudioState(result);
+    }
+  }
+
   void _setHighlightedMidiNotes(Set<int> midiNoteNumbers) {
     state = state.copyWith(
       highlightedMidiNotes: Set<int>.unmodifiable(midiNoteNumbers),
     );
+  }
+
+  void _syncPianoAudioState(PianoAudioResult result) {
+    final PianoAudioResultType? nextStatusType;
+    if (result.isSuccess) {
+      nextStatusType = _pianoAudioService.isSoundFontLoaded
+          ? PianoAudioResultType.success
+          : state.pianoStatusType;
+    } else {
+      nextStatusType = result.type;
+    }
+
+    state = state.copyWith(
+      isPianoSoundFontLoaded: _pianoAudioService.isSoundFontLoaded,
+      pianoStatusType: nextStatusType,
+      preservePianoStatusType: false,
+    );
+  }
+
+  Future<void> _playFallbackNotes(Iterable<MusicNote> notes) async {
+    for (final MusicNote note in notes) {
+      await _audioPlaybackService.playNote(note);
+    }
   }
 }
 

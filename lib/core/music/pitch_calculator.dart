@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'music_accidental.dart';
 import 'music_note.dart';
 import 'pitch_result_state.dart';
 
@@ -8,34 +7,19 @@ abstract final class PitchCalculator {
   static const double referenceFrequencyHz = 440.0;
   static const int referenceMidiNoteNumber = 69;
 
-  static const List<String> _noteNames = <String>[
-    'C',
-    'C#',
-    'D',
-    'D#',
-    'E',
-    'F',
-    'F#',
-    'G',
-    'G#',
-    'A',
-    'A#',
-    'B',
-  ];
-
-  static const List<String> _turkishNoteNames = <String>[
-    'Do',
-    'Do diyez',
-    'Re',
-    'Re diyez',
-    'Mi',
-    'Fa',
-    'Fa diyez',
-    'Sol',
-    'Sol diyez',
-    'La',
-    'La diyez',
-    'Si',
+  static const List<PitchClass> _pitchClasses = <PitchClass>[
+    PitchClass.c,
+    PitchClass.cSharp,
+    PitchClass.d,
+    PitchClass.dSharp,
+    PitchClass.e,
+    PitchClass.f,
+    PitchClass.fSharp,
+    PitchClass.g,
+    PitchClass.gSharp,
+    PitchClass.a,
+    PitchClass.aSharp,
+    PitchClass.b,
   ];
 
   static int? frequencyToNearestMidiNoteNumber(double frequencyHz) {
@@ -69,20 +53,15 @@ abstract final class PitchCalculator {
       return null;
     }
 
-    final int noteIndex = midiNoteNumber % 12;
+    final PitchClass pitchClass = _pitchClasses[midiNoteNumber % 12];
     final int octave = (midiNoteNumber ~/ 12) - 1;
-    final String noteName = _noteNames[noteIndex];
 
     return MusicNote(
       midiNoteNumber: midiNoteNumber,
-      noteName: noteName,
-      turkishNoteName: _turkishNoteNames[noteIndex],
+      pitchClass: pitchClass,
       octave: octave,
       frequencyHz: midiToFrequency(midiNoteNumber)!,
-      isBlackKey: noteName.contains('#'),
-      accidental: noteName.contains('#')
-          ? MusicAccidental.sharp
-          : MusicAccidental.natural,
+      accidental: pitchClass.accidental,
     );
   }
 
@@ -97,11 +76,25 @@ abstract final class PitchCalculator {
   }
 
   static String? midiToNoteName(int midiNoteNumber) {
-    return midiToNote(midiNoteNumber)?.noteName;
-  }
+    final MusicNote? note = midiToNote(midiNoteNumber);
+    if (note == null) {
+      return null;
+    }
 
-  static String? midiToTurkishNoteName(int midiNoteNumber) {
-    return midiToNote(midiNoteNumber)?.turkishNoteName;
+    return switch (note.pitchClass) {
+      PitchClass.c => 'C',
+      PitchClass.cSharp => 'C♯',
+      PitchClass.d => 'D',
+      PitchClass.dSharp => 'D♯',
+      PitchClass.e => 'E',
+      PitchClass.f => 'F',
+      PitchClass.fSharp => 'F♯',
+      PitchClass.g => 'G',
+      PitchClass.gSharp => 'G♯',
+      PitchClass.a => 'A',
+      PitchClass.aSharp => 'A♯',
+      PitchClass.b => 'B',
+    };
   }
 
   static int? frequencyToOctave(double frequencyHz) {
@@ -121,23 +114,13 @@ abstract final class PitchCalculator {
   }
 
   static PitchResultState classifyCentDifference(double centDifference) {
-    if (centDifference < -15) {
+    if (centDifference < 0) {
       return PitchResultState.flat;
     }
-    if (centDifference > 15) {
+    if (centDifference > 0) {
       return PitchResultState.sharp;
     }
     return PitchResultState.correct;
-  }
-
-  static String describeCentDifference(double centDifference) {
-    if (centDifference < 0) {
-      return 'Biraz pes';
-    }
-    if (centDifference > 0) {
-      return 'Biraz tiz';
-    }
-    return 'Doğru';
   }
 
   static bool _isValidFrequency(double frequencyHz) {

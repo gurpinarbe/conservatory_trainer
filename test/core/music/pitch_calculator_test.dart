@@ -1,3 +1,4 @@
+import 'package:conservatory_trainer/core/music/music_note.dart';
 import 'package:conservatory_trainer/core/music/piano_keyboard_layout.dart';
 import 'package:conservatory_trainer/core/music/piano_note_range.dart';
 import 'package:conservatory_trainer/core/music/pitch_calculator.dart';
@@ -6,41 +7,44 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PitchCalculator', () {
-    test('440 Hz is La4', () {
-      final note = PitchCalculator.frequencyToNote(440);
+    test('440 Hz is A4', () {
+      final MusicNote? note = PitchCalculator.frequencyToNote(440);
 
       expect(PitchCalculator.frequencyToNearestMidiNoteNumber(440), 69);
       expect(PitchCalculator.midiToFrequency(69), closeTo(440.0, 0.001));
       expect(PitchCalculator.midiToNoteName(69), 'A');
-      expect(PitchCalculator.midiToTurkishNoteName(69), 'La');
       expect(PitchCalculator.frequencyToOctave(440), 4);
-      expect(note?.turkishScientificName, 'La4');
+      expect(note?.pitchClass, PitchClass.a);
+      expect(note?.octave, 4);
       expect(note?.frequencyHz, closeTo(440.0, 0.001));
     });
 
-    test('261.63 Hz is approximately Do4', () {
-      final note = PitchCalculator.frequencyToNote(261.63);
+    test('261.63 Hz is approximately C4', () {
+      final MusicNote? note = PitchCalculator.frequencyToNote(261.63);
 
       expect(note?.midiNoteNumber, 60);
-      expect(note?.turkishScientificName, 'Do4');
+      expect(note?.pitchClass, PitchClass.c);
+      expect(note?.octave, 4);
     });
 
-    test('329.63 Hz is approximately Mi4', () {
-      final note = PitchCalculator.frequencyToNote(329.63);
+    test('329.63 Hz is approximately E4', () {
+      final MusicNote? note = PitchCalculator.frequencyToNote(329.63);
 
       expect(note?.midiNoteNumber, 64);
-      expect(note?.turkishScientificName, 'Mi4');
+      expect(note?.pitchClass, PitchClass.e);
+      expect(note?.octave, 4);
     });
 
-    test('392 Hz is approximately Sol4', () {
-      final note = PitchCalculator.frequencyToNote(392);
+    test('392 Hz is approximately G4', () {
+      final MusicNote? note = PitchCalculator.frequencyToNote(392);
 
       expect(note?.midiNoteNumber, 67);
-      expect(note?.turkishScientificName, 'Sol4');
+      expect(note?.pitchClass, PitchClass.g);
+      expect(note?.octave, 4);
     });
 
     test('440 Hz and 440 Hz have 0 cent difference', () {
-      final centDifference = PitchCalculator.centDifference(
+      final double? centDifference = PitchCalculator.centDifference(
         targetFrequencyHz: 440,
         detectedFrequencyHz: 440,
       );
@@ -50,11 +54,10 @@ void main() {
         PitchCalculator.classifyCentDifference(centDifference!),
         PitchResultState.correct,
       );
-      expect(PitchCalculator.describeCentDifference(centDifference), 'Doğru');
     });
 
     test('438 Hz is a little flat relative to 440 Hz', () {
-      final centDifference = PitchCalculator.centDifference(
+      final double? centDifference = PitchCalculator.centDifference(
         targetFrequencyHz: 440,
         detectedFrequencyHz: 438,
       );
@@ -62,13 +65,13 @@ void main() {
       expect(centDifference, isNotNull);
       expect(centDifference!, lessThan(0));
       expect(
-        PitchCalculator.describeCentDifference(centDifference),
-        'Biraz pes',
+        PitchCalculator.classifyCentDifference(centDifference),
+        PitchResultState.flat,
       );
     });
 
     test('445 Hz is sharp relative to 440 Hz', () {
-      final centDifference = PitchCalculator.centDifference(
+      final double? centDifference = PitchCalculator.centDifference(
         targetFrequencyHz: 440,
         detectedFrequencyHz: 445,
       );
@@ -77,10 +80,6 @@ void main() {
       expect(
         PitchCalculator.classifyCentDifference(centDifference!),
         PitchResultState.sharp,
-      );
-      expect(
-        PitchCalculator.describeCentDifference(centDifference),
-        'Biraz tiz',
       );
     });
 

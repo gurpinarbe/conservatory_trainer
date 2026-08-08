@@ -1,12 +1,19 @@
-enum AppRoute {
-  home('/'),
-  singleNote('/single-note'),
-  noteReading('/note-reading'),
-  staffNoteQuiz('/note-reading/staff-note-quiz'),
-  noteValueLesson('/note-reading/note-values'),
-  melodyWritingSandbox('/note-reading/melody-writing-sandbox');
+abstract final class AppRoute {
+  static const String home = '/';
 
-  const AppRoute(this.path);
+  static const String category = '/category/:categoryId';
+  static const String exercise = '/exercise/:exerciseId';
+  static const String practicePiano = '/practice/piano';
+  static const String practiceStaff = '/practice/staff';
 
-  final String path;
+  static const String legacySingleNote = '/single-note';
+  static const String legacyNoteReading = '/note-reading';
+  static const String legacyStaffNoteQuiz = '/note-reading/staff-note-quiz';
+  static const String noteValueLesson = '/note-reading/note-values';
+  static const String melodyWritingSandbox =
+      '/note-reading/melody-writing-sandbox';
+
+  static String categoryPath(String categoryId) => '/category/$categoryId';
+
+  static String exercisePath(String exerciseId) => '/exercise/$exerciseId';
 }

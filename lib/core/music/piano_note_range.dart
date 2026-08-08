@@ -30,4 +30,26 @@ class PianoNoteRange {
     }
     return octave;
   }
+
+  int maxStartOctave({int visibleOctaveCount = 2}) {
+    final int safeVisibleOctaveCount = visibleOctaveCount < 1
+        ? 1
+        : visibleOctaveCount;
+    final int computedMax = maxOctave - safeVisibleOctaveCount + 1;
+    return computedMax < minOctave ? minOctave : computedMax;
+  }
+
+  int clampVisibleStartOctave(int octave, {int visibleOctaveCount = 2}) {
+    final int safeMaxStartOctave = maxStartOctave(
+      visibleOctaveCount: visibleOctaveCount,
+    );
+
+    if (octave < minOctave) {
+      return minOctave;
+    }
+    if (octave > safeMaxStartOctave) {
+      return safeMaxStartOctave;
+    }
+    return octave;
+  }
 }

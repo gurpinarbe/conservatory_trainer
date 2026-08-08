@@ -1,34 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../app/note_naming_controller.dart';
 import '../../../core/music/music_note.dart';
+import '../../../core/music/note_label_formatter.dart';
+import '../../../core/music/note_naming_system.dart';
 import '../../../core/music/piano_keyboard_layout.dart';
 import '../../../core/music/piano_note_range.dart';
+import '../../../core/music/pitch_calculator.dart';
+import '../../../l10n/l10n.dart';
+import 'piano_keyboard.dart';
 
 class PianoPanel extends StatefulWidget {
   const PianoPanel({
     super.key,
     required this.highlightedMidiNotes,
+    required this.pressedMidiNotes,
     required this.showHighlightedMidiNotes,
     required this.autoFollowHighlightedNotes,
     required this.onShowHighlightedMidiNotesChanged,
     required this.onAutoFollowHighlightedNotesChanged,
     required this.onNotePressed,
+    required this.onNoteReleased,
+    required this.onPlayLa4DemoPressed,
+    required this.onPlayCMajorChordDemoPressed,
     this.onDevelopmentDemoPressed,
     this.lastPlayedNote,
     this.noteRange = PianoKeyboardLayout.supportedRange,
     this.initialOctave = 4,
+    this.initiallyExpanded = false,
+    this.showDemoActions = true,
+    this.soundFontStatusMessage,
+    this.isSoundFontLoaded = false,
   });
 
   final Set<int> highlightedMidiNotes;
+  final Set<int> pressedMidiNotes;
   final bool showHighlightedMidiNotes;
   final bool autoFollowHighlightedNotes;
   final ValueChanged<bool> onShowHighlightedMidiNotesChanged;
   final ValueChanged<bool> onAutoFollowHighlightedNotesChanged;
-  final ValueChanged<MusicNote> onNotePressed;
+  final ValueChanged<int> onNotePressed;
+  final ValueChanged<int> onNoteReleased;
+  final VoidCallback onPlayLa4DemoPressed;
+  final VoidCallback onPlayCMajorChordDemoPressed;
   final VoidCallback? onDevelopmentDemoPressed;
   final MusicNote? lastPlayedNote;
   final PianoNoteRange noteRange;
   final int initialOctave;
+  final bool initiallyExpanded;
+  final bool showDemoActions;
+  final String? soundFontStatusMessage;
+  final bool isSoundFontLoaded;
 
   @override
   State<PianoPanel> createState() => _PianoPanelState();
@@ -36,21 +60,12 @@ class PianoPanel extends StatefulWidget {
 
 class _PianoPanelState extends State<PianoPanel> {
   static const Duration _panelAnimationDuration = Duration(milliseconds: 240);
-  static const double _whiteKeyHeight = 196;
-  static const double _blackKeyHeight = 120;
-  static const double _blackKeyWidth = 42;
-
-  final ScrollController _scrollController = ScrollController();
-  final Map<int, Set<int>> _activePointerIdsByMidiNoteNumber =
-      <int, Set<int>>{};
+  static const int _visibleOctaveCount = 2;
+  static const NoteLabelFormatter _noteLabelFormatter = NoteLabelFormatter();
 
   late int _currentOctave;
   bool _isExpanded = false;
-  double _whiteKeyWidth = 60;
-  double _viewportWidth = 0;
-
-  Set<int> get _pressedMidiNoteNumbers =>
-      _activePointerIdsByMidiNoteNumber.keys.toSet();
+  bool _showNoteLabels = false;
 
   Set<int> get _visibleHighlightedMidiNotes {
     return widget.showHighlightedMidiNotes
@@ -58,46 +73,75 @@ class _PianoPanelState extends State<PianoPanel> {
         : const <int>{};
   }
 
+  PianoNoteRange get _visibleRange =>
+      PianoKeyboardLayout.visibleRangeForOctaveStart(
+        _currentOctave,
+        range: widget.noteRange,
+        visibleOctaveCount: _visibleOctaveCount,
+      );
+
+  bool get _canMoveToPreviousOctave {
+    return _currentOctave > widget.noteRange.minOctave;
+  }
+
+  bool get _canMoveToNextOctave {
+    return _currentOctave <
+        widget.noteRange.maxStartOctave(
+          visibleOctaveCount: _visibleOctaveCount,
+        );
+  }
+
   @override
   void initState() {
     super.initState();
-    _currentOctave = widget.noteRange.clampOctave(widget.initialOctave);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToCurrentOctave(animated: false);
-    });
+    _isExpanded = widget.initiallyExpanded;
+    _currentOctave = widget.noteRange.clampVisibleStartOctave(
+      widget.initialOctave,
+      visibleOctaveCount: _visibleOctaveCount,
+    );
   }
 
   @override
   void didUpdateWidget(covariant PianoPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (_shouldAutoFollowHighlightedNotes(oldWidget)) {
-      _currentOctave = PianoKeyboardLayout.octaveForHighlightedNotes(
-        widget.highlightedMidiNotes,
-        range: widget.noteRange,
-        fallbackOctave: _currentOctave,
-      );
+    final bool shouldAutoFollow =
+        widget.autoFollowHighlightedNotes &&
+        widget.highlightedMidiNotes.isNotEmpty &&
+        oldWidget.highlightedMidiNotes != widget.highlightedMidiNotes;
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToCurrentOctave(animated: true);
+    if (shouldAutoFollow) {
+      setState(() {
+        _currentOctave = PianoKeyboardLayout.startOctaveForHighlightedNotes(
+          widget.highlightedMidiNotes,
+          range: widget.noteRange,
+          fallbackOctave: _currentOctave,
+          visibleOctaveCount: _visibleOctaveCount,
+        );
       });
     }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
-    final String playedNoteLabel =
-        widget.lastPlayedNote?.turkishScientificName ??
-        'Henüz bir nota çalmadın';
+    final AppLocalizations l10n = context.l10n;
+    final NoteNamingSystem noteNamingSystem = ProviderScope.containerOf(
+      context,
+      listen: true,
+    ).read(noteNamingControllerProvider);
+    final MusicNote? lastPlayedNote = widget.lastPlayedNote;
+    final MusicNote la4 = PitchCalculator.midiToNote(69)!;
+    final MusicNote c4 = PitchCalculator.midiToNote(60)!;
+    final String la4Label = _noteLabelFormatter.formatScientificName(
+      la4,
+      namingSystem: noteNamingSystem,
+    );
+    final String cMajorRoot = _noteLabelFormatter.formatPitchClass(
+      c4.pitchClass,
+      namingSystem: noteNamingSystem,
+    );
 
     return Card(
       elevation: 0,
@@ -118,7 +162,9 @@ class _PianoPanelState extends State<PianoPanel> {
                       ? Icons.keyboard_hide_rounded
                       : Icons.piano_rounded,
                 ),
-                label: Text(_isExpanded ? 'Piyanoyu Kapat' : 'Piyanoyu Aç'),
+                label: Text(
+                  _isExpanded ? l10n.pianoCloseButton : l10n.pianoOpenButton,
+                ),
               ),
             ),
             AnimatedSize(
@@ -131,118 +177,113 @@ class _PianoPanelState extends State<PianoPanel> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Çaldığın Nota: $playedNoteLabel',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
+                          if (widget.soundFontStatusMessage != null)
+                            _StatusBanner(
+                              message: widget.soundFontStatusMessage!,
+                              isReady: widget.isSoundFontLoaded,
                             ),
+                          _LastPlayedNoteCard(
+                            lastPlayedNote: lastPlayedNote,
+                            noteNamingSystem: noteNamingSystem,
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Tuşlara dokunarak notaları tek tek deneyebilirsin.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           SwitchListTile.adaptive(
                             contentPadding: EdgeInsets.zero,
                             value: widget.showHighlightedMidiNotes,
                             onChanged: widget.onShowHighlightedMidiNotesChanged,
-                            title: const Text('Çalan notaları piyanoda göster'),
+                            title: Text(l10n.showExerciseNotesOnPiano),
                           ),
                           SwitchListTile.adaptive(
                             contentPadding: EdgeInsets.zero,
                             value: widget.autoFollowHighlightedNotes,
                             onChanged:
                                 widget.onAutoFollowHighlightedNotesChanged,
-                            title: const Text('Oktavı otomatik takip et'),
+                            title: Text(l10n.followHighlightByOctave),
                           ),
-                          if (widget.onDevelopmentDemoPressed != null)
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: TextButton.icon(
-                                key: const ValueKey<String>(
-                                  'single-note-demo-sequence-button',
+                          SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            value: _showNoteLabels,
+                            onChanged: (bool value) {
+                              setState(() {
+                                _showNoteLabels = value;
+                              });
+                            },
+                            title: Text(l10n.showNoteNamesOnKeys),
+                          ),
+                          const SizedBox(height: 8),
+                          if (widget.showDemoActions) ...[
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                FilledButton.tonalIcon(
+                                  key: const ValueKey<String>(
+                                    'piano-demo-la4-button',
+                                  ),
+                                  onPressed: widget.onPlayLa4DemoPressed,
+                                  icon: const Icon(Icons.music_note_rounded),
+                                  label: Text(
+                                    l10n.playReferenceNoteButton(la4Label),
+                                  ),
                                 ),
-                                onPressed: widget.onDevelopmentDemoPressed,
-                                icon: const Icon(Icons.queue_music_rounded),
-                                label: const Text('Do-Mi-Sol demosunu göster'),
-                              ),
+                                FilledButton.tonalIcon(
+                                  key: const ValueKey<String>(
+                                    'piano-demo-c-major-button',
+                                  ),
+                                  onPressed:
+                                      widget.onPlayCMajorChordDemoPressed,
+                                  icon: const Icon(Icons.library_music_rounded),
+                                  label: Text(
+                                    l10n.playMajorChordButton(
+                                      l10n.majorChordName(cMajorRoot),
+                                    ),
+                                  ),
+                                ),
+                                if (widget.onDevelopmentDemoPressed != null)
+                                  TextButton.icon(
+                                    key: const ValueKey<String>(
+                                      'single-note-demo-sequence-button',
+                                    ),
+                                    onPressed: widget.onDevelopmentDemoPressed,
+                                    icon: const Icon(Icons.queue_music_rounded),
+                                    label: Text(l10n.developmentDemoButton),
+                                  ),
+                              ],
                             ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  key: const ValueKey<String>(
-                                    'piano-prev-octave',
-                                  ),
-                                  onPressed: _canMoveToPreviousOctave
-                                      ? () => _moveOctave(-1)
-                                      : null,
-                                  icon: const Icon(Icons.chevron_left_rounded),
-                                  label: const Text('Önceki Oktav'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: Text(
-                                    '$_currentOctave. Oktav',
-                                    textAlign: TextAlign.center,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w800),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  key: const ValueKey<String>(
-                                    'piano-next-octave',
-                                  ),
-                                  onPressed: _canMoveToNextOctave
-                                      ? () => _moveOctave(1)
-                                      : null,
-                                  icon: const Icon(Icons.chevron_right_rounded),
-                                  label: const Text('Sonraki Oktav'),
-                                ),
-                              ),
-                            ],
+                            const SizedBox(height: 16),
+                          ],
+                          _OctaveControls(
+                            currentOctave: _currentOctave,
+                            canMoveToPreviousOctave: _canMoveToPreviousOctave,
+                            canMoveToNextOctave: _canMoveToNextOctave,
+                            onPreviousPressed: () => _moveOctave(-1),
+                            onNextPressed: () => _moveOctave(1),
                           ),
                           const SizedBox(height: 16),
-                          LayoutBuilder(
-                            builder:
-                                (
-                                  BuildContext context,
-                                  BoxConstraints constraints,
-                                ) {
-                                  _viewportWidth = constraints.maxWidth;
-                                  _whiteKeyWidth = constraints.maxWidth < 420
-                                      ? 56
-                                      : 64;
-
-                                  return ClipRRect(
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: Container(
-                                      color: const Color(0xFFE7E0D2),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      child: _buildKeyboard(context),
-                                    ),
-                                  );
-                                },
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECE4D6),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: PianoKeyboard(
+                                startMidiNote:
+                                    _visibleRange.startMidiNoteNumber,
+                                endMidiNote: _visibleRange.endMidiNoteNumber,
+                                highlightedMidiNotes:
+                                    _visibleHighlightedMidiNotes,
+                                pressedMidiNotes: widget.pressedMidiNotes,
+                                showNoteLabels: _showNoteLabels,
+                                pianoHeight: 220,
+                                onNotePressed: widget.onNotePressed,
+                                onNoteReleased: widget.onNoteReleased,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -255,392 +296,283 @@ class _PianoPanelState extends State<PianoPanel> {
     );
   }
 
-  bool get _canMoveToPreviousOctave {
-    return _currentOctave > widget.noteRange.minOctave;
-  }
-
-  bool get _canMoveToNextOctave {
-    return _currentOctave < widget.noteRange.maxOctave;
-  }
-
-  bool _shouldAutoFollowHighlightedNotes(PianoPanel oldWidget) {
-    final bool highlightsChanged = !_sameMidiSet(
-      oldWidget.highlightedMidiNotes,
-      widget.highlightedMidiNotes,
-    );
-
-    return highlightsChanged &&
-        widget.showHighlightedMidiNotes &&
-        widget.autoFollowHighlightedNotes &&
-        widget.highlightedMidiNotes.isNotEmpty &&
-        _pressedMidiNoteNumbers.isEmpty;
-  }
-
   void _toggleExpanded() {
     setState(() {
       _isExpanded = !_isExpanded;
     });
-
-    if (_isExpanded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToCurrentOctave(animated: true);
-      });
-    }
   }
 
   void _moveOctave(int delta) {
-    final int nextOctave = widget.noteRange.clampOctave(_currentOctave + delta);
-    if (nextOctave == _currentOctave) {
-      return;
-    }
-
     setState(() {
-      _currentOctave = nextOctave;
-    });
-
-    _scrollToCurrentOctave(animated: true);
-  }
-
-  Widget _buildKeyboard(BuildContext context) {
-    final List<MusicNote> notes = PianoKeyboardLayout.notesForRange(
-      range: widget.noteRange,
-    );
-    final List<MusicNote> whiteKeys = notes
-        .where((MusicNote note) => !note.isBlackKey)
-        .toList();
-    final double keyboardWidth = whiteKeys.length * _whiteKeyWidth;
-
-    int whiteKeyIndex = 0;
-    final List<_BlackKeyLayout> blackKeyLayouts = <_BlackKeyLayout>[];
-
-    for (final MusicNote note in notes) {
-      if (note.isBlackKey) {
-        blackKeyLayouts.add(
-          _BlackKeyLayout(
-            note: note,
-            leftOffset: (whiteKeyIndex * _whiteKeyWidth) - (_blackKeyWidth / 2),
-          ),
-        );
-      } else {
-        whiteKeyIndex++;
-      }
-    }
-
-    return SingleChildScrollView(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      child: SizedBox(
-        width: keyboardWidth,
-        height: _whiteKeyHeight,
-        child: Stack(
-          children: [
-            Row(
-              children: whiteKeys.map((MusicNote note) {
-                return _PianoKey(
-                  note: note,
-                  width: _whiteKeyWidth,
-                  height: _whiteKeyHeight,
-                  isPressed: _pressedMidiNoteNumbers.contains(
-                    note.midiNoteNumber,
-                  ),
-                  isExerciseHighlighted: _visibleHighlightedMidiNotes.contains(
-                    note.midiNoteNumber,
-                  ),
-                  onPointerDown: _handlePointerDown,
-                  onPointerUp: _handlePointerEnd,
-                  showStaticLabel: true,
-                );
-              }).toList(),
-            ),
-            ...blackKeyLayouts.map((layout) {
-              return Positioned(
-                left: layout.leftOffset,
-                top: 0,
-                child: _PianoKey(
-                  note: layout.note,
-                  width: _blackKeyWidth,
-                  height: _blackKeyHeight,
-                  isPressed: _pressedMidiNoteNumbers.contains(
-                    layout.note.midiNoteNumber,
-                  ),
-                  isExerciseHighlighted: _visibleHighlightedMidiNotes.contains(
-                    layout.note.midiNoteNumber,
-                  ),
-                  onPointerDown: _handlePointerDown,
-                  onPointerUp: _handlePointerEnd,
-                  showStaticLabel: false,
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _handlePointerDown(MusicNote note, int pointerId) {
-    final Set<int> pointerIds = _activePointerIdsByMidiNoteNumber.putIfAbsent(
-      note.midiNoteNumber,
-      () => <int>{},
-    );
-    pointerIds.add(pointerId);
-
-    setState(() {});
-    widget.onNotePressed(note);
-  }
-
-  void _handlePointerEnd(MusicNote note, int pointerId) {
-    final Set<int>? pointerIds =
-        _activePointerIdsByMidiNoteNumber[note.midiNoteNumber];
-    if (pointerIds == null) {
-      return;
-    }
-
-    pointerIds.remove(pointerId);
-    if (pointerIds.isEmpty) {
-      _activePointerIdsByMidiNoteNumber.remove(note.midiNoteNumber);
-    }
-
-    setState(() {});
-  }
-
-  void _scrollToCurrentOctave({required bool animated}) {
-    if (!_scrollController.hasClients) {
-      return;
-    }
-
-    final double octaveWidth = 7 * _whiteKeyWidth;
-    final double centeredOffset =
-        ((_currentOctave - widget.noteRange.minOctave) * octaveWidth) -
-        ((_viewportWidth - octaveWidth) / 2);
-
-    final double clampedOffset = centeredOffset.clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-
-    if (animated) {
-      _scrollController.animateTo(
-        clampedOffset,
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeInOut,
+      _currentOctave = widget.noteRange.clampVisibleStartOctave(
+        _currentOctave + delta,
+        visibleOctaveCount: _visibleOctaveCount,
       );
-    } else {
-      _scrollController.jumpTo(clampedOffset);
-    }
-  }
-
-  bool _sameMidiSet(Set<int> first, Set<int> second) {
-    if (first.length != second.length) {
-      return false;
-    }
-
-    for (final int value in first) {
-      if (!second.contains(value)) {
-        return false;
-      }
-    }
-
-    return true;
+    });
   }
 }
 
-class _PianoKey extends StatelessWidget {
-  const _PianoKey({
-    required this.note,
-    required this.width,
-    required this.height,
-    required this.isPressed,
-    required this.isExerciseHighlighted,
-    required this.onPointerDown,
-    required this.onPointerUp,
-    required this.showStaticLabel,
+class _OctaveControls extends StatelessWidget {
+  const _OctaveControls({
+    required this.currentOctave,
+    required this.canMoveToPreviousOctave,
+    required this.canMoveToNextOctave,
+    required this.onPreviousPressed,
+    required this.onNextPressed,
   });
 
-  final MusicNote note;
-  final double width;
-  final double height;
-  final bool isPressed;
-  final bool isExerciseHighlighted;
-  final void Function(MusicNote note, int pointerId) onPointerDown;
-  final void Function(MusicNote note, int pointerId) onPointerUp;
-  final bool showStaticLabel;
+  final int currentOctave;
+  final bool canMoveToPreviousOctave;
+  final bool canMoveToNextOctave;
+  final VoidCallback onPreviousPressed;
+  final VoidCallback onNextPressed;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
-    final bool isActive = isPressed || isExerciseHighlighted;
-    final Color backgroundColor = _backgroundColor(colorScheme);
-    final Color foregroundColor = note.isBlackKey
-        ? Colors.white
-        : colorScheme.onSurface;
+    final AppLocalizations l10n = context.l10n;
 
-    return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: (PointerDownEvent event) {
-        onPointerDown(note, event.pointer);
-      },
-      onPointerUp: (PointerUpEvent event) {
-        onPointerUp(note, event.pointer);
-      },
-      onPointerCancel: (PointerCancelEvent event) {
-        onPointerUp(note, event.pointer);
-      },
-      child: Semantics(
-        label: note.accessibilityLabel,
-        button: true,
-        selected: isActive,
-        child: SizedBox(
-          width: width,
-          height: height,
-          child: Stack(
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (constraints.maxWidth < 430) {
+          return Row(
             children: [
-              AnimatedContainer(
-                key: ValueKey<String>('piano-key-${note.midiNoteNumber}'),
-                duration: const Duration(milliseconds: 110),
-                width: width,
-                height: height,
-                margin: EdgeInsets.only(
-                  left: note.isBlackKey ? 0 : 1,
-                  right: note.isBlackKey ? 0 : 1,
-                ),
-                padding: EdgeInsets.only(
-                  left: 6,
-                  right: 6,
-                  top: 8,
-                  bottom: note.isBlackKey ? 10 : 12,
-                ),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(
-                    note.isBlackKey ? 12 : 16,
+              SizedBox(
+                width: 56,
+                height: 56,
+                child: Tooltip(
+                  message: l10n.previousOctave,
+                  child: OutlinedButton(
+                    key: const ValueKey<String>('piano-prev-octave'),
+                    onPressed: canMoveToPreviousOctave
+                        ? onPreviousPressed
+                        : null,
+                    child: const Icon(Icons.chevron_left_rounded),
                   ),
-                  border: Border.all(
-                    color: isPressed
-                        ? colorScheme.primary
-                        : colorScheme.outlineVariant,
-                  ),
-                  boxShadow: note.isBlackKey
-                      ? const <BoxShadow>[
-                          BoxShadow(
-                            color: Color(0x33000000),
-                            blurRadius: 10,
-                            offset: Offset(0, 6),
-                          ),
-                        ]
-                      : const <BoxShadow>[
-                          BoxShadow(
-                            color: Color(0x14000000),
-                            blurRadius: 6,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    if (isExerciseHighlighted)
-                      Container(
-                        key: ValueKey<String>(
-                          'piano-highlight-${note.midiNoteNumber}',
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: note.isBlackKey
-                              ? colorScheme.secondary
-                              : colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          note.turkishScientificName,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: note.isBlackKey
-                                ? colorScheme.onSecondary
-                                : colorScheme.onSecondaryContainer,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      )
-                    else if (isPressed)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: note.isBlackKey
-                              ? colorScheme.primary
-                              : colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          note.turkishScientificName,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: note.isBlackKey
-                                ? colorScheme.onPrimary
-                                : colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox(height: 22),
-                    const Spacer(),
-                    if (showStaticLabel)
-                      Text(
-                        note.turkishNoteName,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: foregroundColor,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                  ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    l10n.octaveLabel(currentOctave),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 56,
+                height: 56,
+                child: Tooltip(
+                  message: l10n.nextOctave,
+                  child: OutlinedButton(
+                    key: const ValueKey<String>('piano-next-octave'),
+                    onPressed: canMoveToNextOctave ? onNextPressed : null,
+                    child: const Icon(Icons.chevron_right_rounded),
+                  ),
                 ),
               ),
             ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                key: const ValueKey<String>('piano-prev-octave'),
+                onPressed: canMoveToPreviousOctave ? onPreviousPressed : null,
+                icon: const Icon(Icons.chevron_left_rounded),
+                label: Text(
+                  l10n.previousOctave,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  l10n.octaveLabel(currentOctave),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                key: const ValueKey<String>('piano-next-octave'),
+                onPressed: canMoveToNextOctave ? onNextPressed : null,
+                icon: const Icon(Icons.chevron_right_rounded),
+                label: Text(
+                  l10n.nextOctave,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatusBanner extends StatelessWidget {
+  const _StatusBanner({required this.message, required this.isReady});
+
+  final String message;
+  final bool isReady;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
+
+    return Container(
+      key: const ValueKey<String>('piano-soundfont-message'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isReady
+            ? colorScheme.primaryContainer
+            : colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isReady ? Icons.check_circle_outline_rounded : Icons.info_outline,
+            color: isReady
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSecondaryContainer,
           ),
-        ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isReady
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSecondaryContainer,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LastPlayedNoteCard extends StatelessWidget {
+  const _LastPlayedNoteCard({
+    required this.lastPlayedNote,
+    required this.noteNamingSystem,
+  });
+
+  static const NoteLabelFormatter _noteLabelFormatter = NoteLabelFormatter();
+
+  final MusicNote? lastPlayedNote;
+  final NoteNamingSystem noteNamingSystem;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.lastPlayedNoteTitle,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            lastPlayedNote == null
+                ? l10n.noNotePlayedYet
+                : _noteLabelFormatter.formatScientificName(
+                    lastPlayedNote!,
+                    namingSystem: noteNamingSystem,
+                  ),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          if (lastPlayedNote != null)
+            Text(
+              l10n.lastPlayedNoteDetails(
+                _noteLabelFormatter.formatScientificName(
+                  lastPlayedNote!,
+                  namingSystem: NoteNamingSystem.letterNames,
+                ),
+                lastPlayedNote!.midiNoteNumber,
+                _formatFrequency(context, lastPlayedNote!.frequencyHz),
+              ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+            )
+          else
+            Text(
+              l10n.lastPlayedNoteHint,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Color _backgroundColor(ColorScheme colorScheme) {
-    if (note.isBlackKey) {
-      if (isPressed && isExerciseHighlighted) {
-        return colorScheme.tertiary;
-      }
-      if (isPressed) {
-        return colorScheme.primary;
-      }
-      if (isExerciseHighlighted) {
-        return colorScheme.secondary;
-      }
-      return const Color(0xFF28343A);
-    }
-
-    if (isPressed && isExerciseHighlighted) {
-      return colorScheme.tertiaryContainer;
-    }
-    if (isPressed) {
-      return colorScheme.primaryContainer;
-    }
-    if (isExerciseHighlighted) {
-      return colorScheme.secondaryContainer;
-    }
-    return colorScheme.surface;
+  String _formatFrequency(BuildContext context, double value) {
+    final String localeName = Localizations.localeOf(context).toLanguageTag();
+    final NumberFormat format = NumberFormat.decimalPatternDigits(
+      locale: localeName,
+      decimalDigits: 1,
+    );
+    return '${format.format(value)} Hz';
   }
-}
-
-class _BlackKeyLayout {
-  const _BlackKeyLayout({required this.note, required this.leftOffset});
-
-  final MusicNote note;
-  final double leftOffset;
 }

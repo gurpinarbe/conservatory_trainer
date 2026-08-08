@@ -28,19 +28,12 @@ class SingleNotePreviewService {
       detectedNote: detectedNote,
       centDifference: centDifference,
       resultState: PitchCalculator.classifyCentDifference(centDifference),
-      resultMessage: PitchCalculator.describeCentDifference(centDifference),
     );
   }
 
   List<MusicNote> buildDevelopmentDemoNotes() {
     return <MusicNote>[_noteFromMidi(60), _noteFromMidi(64), _noteFromMidi(67)];
   }
-
-  String get listenPreviewMessage =>
-      'Bu prototipte gerçek ses henüz çalınmıyor.';
-
-  String get recordPreviewMessage =>
-      'Mikrofondan ses alma akışı hazır, ancak sesini notaya çeviren gerçek analiz motoru henüz eklenmedi. Şimdilik örnek sonuçlar gösteriliyor.';
 
   NotationSequence buildListenSequence() {
     final MusicNote note = _noteFromMidi(69);

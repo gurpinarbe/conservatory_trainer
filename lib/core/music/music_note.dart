@@ -1,32 +1,61 @@
 import 'music_accidental.dart';
 
+enum PitchClass { c, cSharp, d, dSharp, e, f, fSharp, g, gSharp, a, aSharp, b }
+
+extension PitchClassX on PitchClass {
+  bool get isBlackKey {
+    return switch (this) {
+      PitchClass.cSharp ||
+      PitchClass.dSharp ||
+      PitchClass.fSharp ||
+      PitchClass.gSharp ||
+      PitchClass.aSharp => true,
+      _ => false,
+    };
+  }
+
+  MusicAccidental get accidental {
+    return switch (this) {
+      PitchClass.cSharp ||
+      PitchClass.dSharp ||
+      PitchClass.fSharp ||
+      PitchClass.gSharp ||
+      PitchClass.aSharp => MusicAccidental.sharp,
+      _ => MusicAccidental.natural,
+    };
+  }
+
+  String get naturalNoteName {
+    return switch (this) {
+      PitchClass.c || PitchClass.cSharp => 'C',
+      PitchClass.d || PitchClass.dSharp => 'D',
+      PitchClass.e => 'E',
+      PitchClass.f || PitchClass.fSharp => 'F',
+      PitchClass.g || PitchClass.gSharp => 'G',
+      PitchClass.a || PitchClass.aSharp => 'A',
+      PitchClass.b => 'B',
+    };
+  }
+}
+
 class MusicNote {
   const MusicNote({
     required this.midiNoteNumber,
-    required this.noteName,
-    required this.turkishNoteName,
+    required this.pitchClass,
     required this.octave,
     required this.frequencyHz,
-    required this.isBlackKey,
     required this.accidental,
   });
 
   final int midiNoteNumber;
-  final String noteName;
-  final String turkishNoteName;
+  final PitchClass pitchClass;
   final int octave;
   final double frequencyHz;
-  final bool isBlackKey;
   final MusicAccidental accidental;
 
-  String get scientificName => '$noteName$octave';
+  bool get isBlackKey => pitchClass.isBlackKey;
 
-  String get turkishScientificName => '$turkishNoteName$octave';
-
-  String get accessibilityLabel => '$turkishScientificName tuşu';
-
-  String get naturalNoteName =>
-      noteName.replaceAll('#', '').replaceAll('b', '');
+  String get naturalNoteName => pitchClass.naturalNoteName;
 
   int get diatonicIndex =>
       (octave * 7) + _stepIndexForNaturalName(naturalNoteName);
@@ -56,22 +85,13 @@ class MusicNote {
 
     return other is MusicNote &&
         other.midiNoteNumber == midiNoteNumber &&
-        other.noteName == noteName &&
-        other.turkishNoteName == turkishNoteName &&
+        other.pitchClass == pitchClass &&
         other.octave == octave &&
         other.frequencyHz == frequencyHz &&
-        other.isBlackKey == isBlackKey &&
         other.accidental == accidental;
   }
 
   @override
-  int get hashCode => Object.hash(
-    midiNoteNumber,
-    noteName,
-    turkishNoteName,
-    octave,
-    frequencyHz,
-    isBlackKey,
-    accidental,
-  );
+  int get hashCode =>
+      Object.hash(midiNoteNumber, pitchClass, octave, frequencyHz, accidental);
 }

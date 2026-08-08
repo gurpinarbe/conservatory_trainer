@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/note_naming_controller.dart';
 import '../../../core/music/music_accidental.dart';
 import '../../../core/music/music_clef.dart';
+import '../../../core/music/note_label_formatter.dart';
 import '../../../core/music/notation_event.dart';
 import '../../../core/music/note_value.dart';
 import '../../../core/music/staff_position.dart';
+import '../../../l10n/l10n.dart';
 import 'notation_renderer.dart';
 import 'staff_layout.dart';
 
@@ -240,6 +244,7 @@ class _StaffEventGlyph extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
     final IconData? badgeIcon = _badgeIcon(visualState);
     final bool isActive = visualState == NotationEventVisualState.active;
 
@@ -256,7 +261,7 @@ class _StaffEventGlyph extends StatelessWidget {
               border: Border.all(color: colorScheme.outlineVariant),
             ),
             child: Text(
-              'Sus',
+              l10n.restLabel,
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -267,9 +272,19 @@ class _StaffEventGlyph extends StatelessWidget {
     }
 
     final NoteEvent noteEvent = eventLayout.event as NoteEvent;
+    final NoteLabelFormatter formatter = const NoteLabelFormatter();
+    final noteNamingSystem = ProviderScope.containerOf(
+      context,
+      listen: true,
+    ).read(noteNamingControllerProvider);
+    final String accessibleNoteName = formatter.formatAccessibleScientificName(
+      noteEvent.note,
+      l10n: l10n,
+      namingSystem: noteNamingSystem,
+    );
 
     return Semantics(
-      label: '${noteEvent.note.turkishScientificName} notası',
+      label: l10n.staffNoteSemantics(accessibleNoteName),
       selected: isActive,
       child: SizedBox(
         width: eventLayout.bounds.width,

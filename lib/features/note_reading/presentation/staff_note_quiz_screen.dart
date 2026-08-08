@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/note_naming_controller.dart';
 import '../../../core/music/measure.dart';
 import '../../../core/music/music_note.dart';
 import '../../../core/music/notation_event.dart';
 import '../../../core/music/notation_sequence.dart';
+import '../../../core/music/note_label_formatter.dart';
+import '../../../core/music/note_naming_system.dart';
+import '../../../l10n/l10n.dart';
 import '../../../shared/widgets/notation/music_staff_view.dart';
 import '../application/staff_note_quiz_controller.dart';
 import '../domain/staff_note_quiz_state.dart';
@@ -12,13 +16,19 @@ import '../domain/staff_note_quiz_state.dart';
 class StaffNoteQuizScreen extends ConsumerWidget {
   const StaffNoteQuizScreen({super.key});
 
+  static const NoteLabelFormatter _noteLabelFormatter = NoteLabelFormatter();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final StaffNoteQuizState state = ref.watch(staffNoteQuizControllerProvider);
+    final NoteNamingSystem noteNamingSystem = ref.watch(
+      noteNamingControllerProvider,
+    );
     final NotationSequence sequence = _visualSequence(state);
+    final AppLocalizations l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Portedeki Notayı Bul')),
+      appBar: AppBar(title: Text(l10n.staffQuizAppBarTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -37,13 +47,13 @@ class StaffNoteQuizScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Portedeki notayı seç',
+                        l10n.staffQuizPromptTitle,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Bu alıştırmada oktav bilgisi de değerlendiriliyor.',
+                        l10n.staffQuizPromptDescription,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 16),
@@ -66,10 +76,10 @@ class StaffNoteQuizScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              _OptionGrid(state: state),
+              _OptionGrid(state: state, noteNamingSystem: noteNamingSystem),
               if (state.isAnswered) ...[
                 const SizedBox(height: 20),
-                _ResultCard(state: state),
+                _ResultCard(state: state, noteNamingSystem: noteNamingSystem),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -80,7 +90,7 @@ class StaffNoteQuizScreen extends ConsumerWidget {
                           .nextQuestion();
                     },
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Yeni Soru'),
+                    label: Text(l10n.newQuestionButton),
                   ),
                 ),
               ],
@@ -127,6 +137,7 @@ class _IntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
 
     return Container(
       width: double.infinity,
@@ -139,14 +150,14 @@ class _IntroCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Notayı Gör ve Adını Bul',
+            l10n.staffQuizIntroTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 10),
           Text(
-            'Şimdilik Sol anahtarında Do4 ile Do5 arasındaki notalar üretiliyor.',
+            l10n.staffQuizIntroDescription,
             style: theme.textTheme.bodyLarge?.copyWith(height: 1.45),
           ),
         ],
@@ -162,14 +173,22 @@ class _ScoreStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: [
-        _ScoreChip(label: 'Doğru', value: state.correctAnswerCount.toString()),
-        _ScoreChip(label: 'Yanlış', value: state.wrongAnswerCount.toString()),
         _ScoreChip(
-          label: 'Toplam',
+          label: l10n.correctLabel,
+          value: state.correctAnswerCount.toString(),
+        ),
+        _ScoreChip(
+          label: l10n.wrongLabel,
+          value: state.wrongAnswerCount.toString(),
+        ),
+        _ScoreChip(
+          label: l10n.totalLabel,
           value: state.totalAnsweredQuestionCount.toString(),
         ),
       ],
@@ -198,7 +217,13 @@ class _ScoreChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '$label: ',
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            ': ',
             style: theme.textTheme.labelLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -216,9 +241,10 @@ class _ScoreChip extends StatelessWidget {
 }
 
 class _OptionGrid extends ConsumerWidget {
-  const _OptionGrid({required this.state});
+  const _OptionGrid({required this.state, required this.noteNamingSystem});
 
   final StaffNoteQuizState state;
+  final NoteNamingSystem noteNamingSystem;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -231,52 +257,59 @@ class _OptionGrid extends ConsumerWidget {
         return Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: state.question.options.map((MusicNote option) {
-            final bool isSelected =
-                state.selectedAnswer?.midiNoteNumber == option.midiNoteNumber;
-            final bool isCorrect =
-                state.question.targetNote.midiNoteNumber ==
-                option.midiNoteNumber;
-            final ThemeData theme = Theme.of(context);
-            final ColorScheme colorScheme = theme.colorScheme;
-            final Color backgroundColor = state.isAnswered && isCorrect
-                ? Colors.green.shade100
-                : state.isAnswered && isSelected && !isCorrect
-                ? colorScheme.errorContainer
-                : colorScheme.surface;
+          children: state.question.options
+              .map((MusicNote option) {
+                final bool isSelected =
+                    state.selectedAnswer?.midiNoteNumber ==
+                    option.midiNoteNumber;
+                final bool isCorrect =
+                    state.question.targetNote.midiNoteNumber ==
+                    option.midiNoteNumber;
+                final ThemeData theme = Theme.of(context);
+                final ColorScheme colorScheme = theme.colorScheme;
+                final Color backgroundColor = state.isAnswered && isCorrect
+                    ? Colors.green.shade100
+                    : state.isAnswered && isSelected && !isCorrect
+                    ? colorScheme.errorContainer
+                    : colorScheme.surface;
 
-            return SizedBox(
-              width: buttonWidth,
-              child: OutlinedButton(
-                onPressed: state.isAnswered
-                    ? null
-                    : () {
-                        ref
-                            .read(staffNoteQuizControllerProvider.notifier)
-                            .submitAnswer(option);
-                      },
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: backgroundColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 18,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    option.turkishScientificName,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+                return SizedBox(
+                  width: buttonWidth,
+                  child: OutlinedButton(
+                    onPressed: state.isAnswered
+                        ? null
+                        : () {
+                            ref
+                                .read(staffNoteQuizControllerProvider.notifier)
+                                .submitAnswer(option);
+                          },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: backgroundColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 18,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        StaffNoteQuizScreen._noteLabelFormatter
+                            .formatScientificName(
+                              option,
+                              namingSystem: noteNamingSystem,
+                            ),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              })
+              .toList(growable: false),
         );
       },
     );
@@ -284,15 +317,22 @@ class _OptionGrid extends ConsumerWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.state});
+  const _ResultCard({required this.state, required this.noteNamingSystem});
 
   final StaffNoteQuizState state;
+  final NoteNamingSystem noteNamingSystem;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
+    final AppLocalizations l10n = context.l10n;
     final bool isCorrect = state.wasLastAnswerCorrect == true;
+    final String targetNoteLabel = StaffNoteQuizScreen._noteLabelFormatter
+        .formatScientificName(
+          state.question.targetNote,
+          namingSystem: noteNamingSystem,
+        );
 
     return Container(
       width: double.infinity,
@@ -305,14 +345,14 @@ class _ResultCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isCorrect ? 'Doğru cevap' : 'Yanlış cevap',
+            isCorrect ? l10n.correctAnswerTitle : l10n.wrongAnswerTitle,
             style: theme.textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            state.question.targetNote.turkishScientificName,
+            targetNoteLabel,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
             ),
@@ -320,8 +360,8 @@ class _ResultCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             isCorrect
-                ? 'Notayı doğru oktavla birlikte tanıdın.'
-                : 'Doğru cevap ${state.question.targetNote.turkishScientificName} olmalıydı.',
+                ? l10n.staffQuizCorrectMessage
+                : l10n.staffQuizWrongMessage(targetNoteLabel),
           ),
         ],
       ),

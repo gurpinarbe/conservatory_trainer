@@ -75,6 +75,7 @@ abstract final class StaffLayoutCalculator {
   static const double measureSpacing = 20;
   static const double minMeasureWidth = 196;
   static const double unitWidth = 16;
+  static const double glyphVerticalPadding = 60;
 
   static StaffLayoutData build({
     required NotationSequence sequence,
@@ -115,10 +116,13 @@ abstract final class StaffLayoutCalculator {
     final double stepHeight = lineSpacing / 2;
     final double aboveStepCount = math.max(0, maxStep - 8).toDouble();
     final double belowStepCount = math.max(0, -minStep).toDouble();
-    final double topOverflow = math.max(24.0, aboveStepCount * stepHeight + 24);
+    final double topOverflow = math.max(
+      glyphVerticalPadding,
+      aboveStepCount * stepHeight + glyphVerticalPadding,
+    );
     final double bottomOverflow = math.max(
-      24.0,
-      belowStepCount * stepHeight + 24,
+      glyphVerticalPadding,
+      belowStepCount * stepHeight + glyphVerticalPadding,
     );
     final double staffTop = topOverflow;
     final double bottomLineY = staffTop + (lineSpacing * 4);
