@@ -538,7 +538,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followHighlightByOctave => 'Follow highlights by octave';
 
   @override
-  String get showNoteNamesOnKeys => 'Show note names on keys';
+  String get showNoteNamesOnKeys => 'Show note names';
+
+  @override
+  String get sustainLabel => 'Sustain';
+
+  @override
+  String get stopAllPianoButton => 'Stop All';
+
+  @override
+  String get playA4DemoButton => 'Play A4';
+
+  @override
+  String get playCMajorDemoButton => 'Play C Major';
 
   @override
   String playReferenceNoteButton(Object noteName) {
@@ -567,6 +579,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String octaveLabel(int octave) {
     return 'Octave $octave';
+  }
+
+  @override
+  String octaveRangeLabel(int startOctave, int endOctave) {
+    return 'Octave $startOctave-$endOctave';
   }
 
   @override
@@ -667,6 +684,11 @@ class AppLocalizationsEn extends AppLocalizations {
     Object octave,
   ) {
     return '$noteName $accidental $octave';
+  }
+
+  @override
+  String pianoKeySemantics(Object noteName) {
+    return '$noteName piano key';
   }
 
   @override

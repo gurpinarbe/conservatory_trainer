@@ -279,6 +279,7 @@ class _PianoPanelState extends State<PianoPanel> {
                                     _visibleHighlightedMidiNotes,
                                 pressedMidiNotes: widget.pressedMidiNotes,
                                 showNoteLabels: _showNoteLabels,
+                                noteNamingSystem: noteNamingSystem,
                                 pianoHeight: 220,
                                 onNotePressed: widget.onNotePressed,
                                 onNoteReleased: widget.onNoteReleased,

@@ -1013,8 +1013,32 @@ abstract class AppLocalizations {
   /// No description provided for @showNoteNamesOnKeys.
   ///
   /// In en, this message translates to:
-  /// **'Show note names on keys'**
+  /// **'Show note names'**
   String get showNoteNamesOnKeys;
+
+  /// No description provided for @sustainLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sustain'**
+  String get sustainLabel;
+
+  /// No description provided for @stopAllPianoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop All'**
+  String get stopAllPianoButton;
+
+  /// No description provided for @playA4DemoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Play A4'**
+  String get playA4DemoButton;
+
+  /// No description provided for @playCMajorDemoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Play C Major'**
+  String get playCMajorDemoButton;
 
   /// No description provided for @playReferenceNoteButton.
   ///
@@ -1057,6 +1081,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Octave {octave}'**
   String octaveLabel(int octave);
+
+  /// No description provided for @octaveRangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Octave {startOctave}-{endOctave}'**
+  String octaveRangeLabel(int startOctave, int endOctave);
 
   /// No description provided for @lastPlayedNoteTitle.
   ///
@@ -1221,6 +1251,12 @@ abstract class AppLocalizations {
     Object accidental,
     Object octave,
   );
+
+  /// No description provided for @pianoKeySemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{noteName} piano key'**
+  String pianoKeySemantics(Object noteName);
 
   /// No description provided for @accidentalSharpWord.
   ///

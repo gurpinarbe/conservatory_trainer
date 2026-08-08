@@ -186,7 +186,11 @@
   "pianoCloseButton": "Close Piano",
   "showExerciseNotesOnPiano": "Show exercise notes on the piano",
   "followHighlightByOctave": "Follow highlights by octave",
-  "showNoteNamesOnKeys": "Show note names on keys",
+  "showNoteNamesOnKeys": "Show note names",
+  "sustainLabel": "Sustain",
+  "stopAllPianoButton": "Stop All",
+  "playA4DemoButton": "Play A4",
+  "playCMajorDemoButton": "Play C Major",
   "playReferenceNoteButton": "Show and Play {noteName}",
   "@playReferenceNoteButton": {
     "placeholders": {
@@ -212,6 +216,17 @@
   "@octaveLabel": {
     "placeholders": {
       "octave": {
+        "type": "int"
+      }
+    }
+  },
+  "octaveRangeLabel": "Octave {startOctave}-{endOctave}",
+  "@octaveRangeLabel": {
+    "placeholders": {
+      "startOctave": {
+        "type": "int"
+      },
+      "endOctave": {
         "type": "int"
       }
     }
@@ -267,6 +282,12 @@
       "noteName": {},
       "accidental": {},
       "octave": {}
+    }
+  },
+  "pianoKeySemantics": "{noteName} piano key",
+  "@pianoKeySemantics": {
+    "placeholders": {
+      "noteName": {}
     }
   },
   "accidentalSharpWord": "sharp",

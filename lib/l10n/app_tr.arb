@@ -186,7 +186,11 @@
   "pianoCloseButton": "Piyanoyu Kapat",
   "showExerciseNotesOnPiano": "Egzersiz notalarını piyanoda göster",
   "followHighlightByOctave": "Vurguyu oktava göre takip et",
-  "showNoteNamesOnKeys": "Nota isimlerini tuşlarda göster",
+  "showNoteNamesOnKeys": "Nota adlarını göster",
+  "sustainLabel": "Sustain",
+  "stopAllPianoButton": "Tüm Sesleri Durdur",
+  "playA4DemoButton": "La4 Çal",
+  "playCMajorDemoButton": "Do Majör Çal",
   "playReferenceNoteButton": "{noteName} Göster ve Çal",
   "@playReferenceNoteButton": {
     "placeholders": {
@@ -212,6 +216,17 @@
   "@octaveLabel": {
     "placeholders": {
       "octave": {
+        "type": "int"
+      }
+    }
+  },
+  "octaveRangeLabel": "{startOctave}-{endOctave}. Oktav",
+  "@octaveRangeLabel": {
+    "placeholders": {
+      "startOctave": {
+        "type": "int"
+      },
+      "endOctave": {
         "type": "int"
       }
     }
@@ -267,6 +282,12 @@
       "noteName": {},
       "accidental": {},
       "octave": {}
+    }
+  },
+  "pianoKeySemantics": "{noteName} piyano tuşu",
+  "@pianoKeySemantics": {
+    "placeholders": {
+      "noteName": {}
     }
   },
   "accidentalSharpWord": "diyez",

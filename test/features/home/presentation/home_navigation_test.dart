@@ -1,6 +1,7 @@
 import 'package:conservatory_trainer/core/audio/piano_audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_virtual_piano/flutter_virtual_piano.dart';
 
 import '../../../test_helpers/test_support.dart';
 
@@ -162,6 +163,33 @@ void main() {
 
     expect(find.text('Two-Note Separation'), findsWidgets);
     expect(find.text('This exercise will be available soon.'), findsOneWidget);
+  });
+
+  testWidgets('tapping Free Piano opens the interactive piano screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      buildConservatoryTestApp(
+        selectedLocale: const Locale('en'),
+        extraOverrides: testAudioOverrides(
+          pianoAudioService: FakePianoAudioService(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Free Practice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Free Practice'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Free Piano'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Free Piano'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Free Piano'), findsWidgets);
+    expect(find.byType(VirtualPiano), findsOneWidget);
+    expect(find.text('Play A4'), findsOneWidget);
   });
 
   testWidgets('small phone layout does not overflow in English and Turkish', (

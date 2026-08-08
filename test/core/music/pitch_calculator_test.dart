@@ -7,6 +7,25 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PitchCalculator', () {
+    test('MIDI 60 is C4', () {
+      final MusicNote? note = PitchCalculator.midiToNote(60);
+
+      expect(note, isNotNull);
+      expect(note?.pitchClass, PitchClass.c);
+      expect(note?.octave, 4);
+      expect(note?.midiNoteNumber, 60);
+    });
+
+    test('MIDI 69 is A4 at 440 Hz', () {
+      final MusicNote? note = PitchCalculator.midiToNote(69);
+
+      expect(note, isNotNull);
+      expect(note?.pitchClass, PitchClass.a);
+      expect(note?.octave, 4);
+      expect(note?.midiNoteNumber, 69);
+      expect(note?.frequencyHz, closeTo(440.0, 0.001));
+    });
+
     test('440 Hz is A4', () {
       final MusicNote? note = PitchCalculator.frequencyToNote(440);
 

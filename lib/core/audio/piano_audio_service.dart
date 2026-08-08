@@ -75,6 +75,8 @@ abstract class PianoAudioService {
 
   bool get isSoundFontLoaded;
 
+  bool get isSustainEnabled;
+
   Set<int> get activeMidiNotes;
 
   Future<PianoAudioResult> initialize();
@@ -86,6 +88,8 @@ abstract class PianoAudioService {
   Future<PianoAudioResult> stopNote(int midiNote);
 
   Future<PianoAudioResult> playChord(Set<int> midiNotes, {int velocity = 100});
+
+  Future<PianoAudioResult> setSustainEnabled(bool enabled);
 
   Future<PianoAudioResult> stopAll();
 
@@ -104,12 +108,16 @@ class MidiProPianoAudioService implements PianoAudioService {
   String? _loadedAssetPath;
   PianoAudioResultType? _lastLoadFailureType;
   String? _lastLoadErrorDetails;
+  bool _isSustainEnabled = false;
 
   @override
   bool get isInitialized => _isInitialized || _midiPro.isInitialized;
 
   @override
   bool get isSoundFontLoaded => _soundFontId != null;
+
+  @override
+  bool get isSustainEnabled => _isSustainEnabled;
 
   @override
   Set<int> get activeMidiNotes => Set<int>.unmodifiable(_activeMidiNotes);
@@ -196,6 +204,7 @@ class MidiProPianoAudioService implements PianoAudioService {
       _loadedAssetPath = assetPath;
       _lastLoadFailureType = null;
       _lastLoadErrorDetails = null;
+      _isSustainEnabled = false;
       return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
     } on Object catch (error) {
       return _registerLoadFailure(
@@ -321,15 +330,43 @@ class MidiProPianoAudioService implements PianoAudioService {
   }
 
   @override
+  Future<PianoAudioResult> setSustainEnabled(bool enabled) async {
+    final PianoAudioResult initResult = await initialize();
+    if (!initResult.isSuccess) {
+      return initResult;
+    }
+
+    if (_soundFontId == null) {
+      return _buildUnavailableSoundFontResult();
+    }
+
+    try {
+      await _midiPro.setSustain(
+        enabled: enabled,
+        channel: _defaultPianoChannel,
+        sfId: _soundFontId!,
+      );
+      _isSustainEnabled = enabled;
+      return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
+    } on Object catch (error) {
+      return PianoAudioResult.engineError(
+        activeMidiNotes: activeMidiNotes,
+        errorDetails: '$error',
+      );
+    }
+  }
+
+  @override
   Future<PianoAudioResult> stopAll() async {
     _activeMidiNotes.clear();
+    _isSustainEnabled = false;
 
     if (!isInitialized || _soundFontId == null) {
       return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
     }
 
     try {
-      await _midiPro.stopAllNotes(sfId: _soundFontId!);
+      await _midiPro.panic();
       return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
     } on Object catch (error) {
       return PianoAudioResult.engineError(
@@ -346,6 +383,7 @@ class MidiProPianoAudioService implements PianoAudioService {
     _loadedAssetPath = null;
     _lastLoadFailureType = null;
     _lastLoadErrorDetails = null;
+    _isSustainEnabled = false;
 
     if (!isInitialized) {
       _isInitialized = false;
@@ -434,9 +472,12 @@ class FakePianoAudioService implements PianoAudioService {
   final List<int> stoppedMidiNotes = <int>[];
   final List<Set<int>> playedChords = <Set<int>>[];
   final List<String> loadedSoundFonts = <String>[];
+  final List<bool> sustainChanges = <bool>[];
+  int stopAllCallCount = 0;
 
   bool _isInitialized = false;
   bool _isSoundFontLoaded = false;
+  bool _isSustainEnabled = false;
   PianoAudioResultType? _lastLoadFailureType;
 
   @override
@@ -444,6 +485,9 @@ class FakePianoAudioService implements PianoAudioService {
 
   @override
   bool get isSoundFontLoaded => _isSoundFontLoaded;
+
+  @override
+  bool get isSustainEnabled => _isSustainEnabled;
 
   @override
   Set<int> get activeMidiNotes => Set<int>.unmodifiable(_activeMidiNotes);
@@ -490,6 +534,7 @@ class FakePianoAudioService implements PianoAudioService {
     }
 
     _isSoundFontLoaded = true;
+    _isSustainEnabled = false;
     _lastLoadFailureType = null;
     return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
   }
@@ -535,8 +580,21 @@ class FakePianoAudioService implements PianoAudioService {
   }
 
   @override
+  Future<PianoAudioResult> setSustainEnabled(bool enabled) async {
+    if (!_isSoundFontLoaded) {
+      return _buildUnavailableSoundFontResult();
+    }
+
+    sustainChanges.add(enabled);
+    _isSustainEnabled = enabled;
+    return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
+  }
+
+  @override
   Future<PianoAudioResult> stopAll() async {
+    stopAllCallCount++;
     _activeMidiNotes.clear();
+    _isSustainEnabled = false;
     return PianoAudioResult.success(activeMidiNotes: activeMidiNotes);
   }
 
@@ -545,6 +603,7 @@ class FakePianoAudioService implements PianoAudioService {
     _activeMidiNotes.clear();
     _isInitialized = false;
     _isSoundFontLoaded = false;
+    _isSustainEnabled = false;
     _lastLoadFailureType = null;
   }
 

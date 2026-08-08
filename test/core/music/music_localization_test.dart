@@ -52,6 +52,18 @@ void main() {
     );
   });
 
+  test('fixedDo shows Do4 for MIDI 60', () {
+    final note = PitchCalculator.midiToNote(60)!;
+
+    expect(
+      formatter.formatScientificName(
+        note,
+        namingSystem: NoteNamingSystem.fixedDo,
+      ),
+      'Do4',
+    );
+  });
+
   test('letterNames shows A4', () {
     final note = PitchCalculator.midiToNote(69)!;
 
@@ -61,6 +73,18 @@ void main() {
         namingSystem: NoteNamingSystem.letterNames,
       ),
       'A4',
+    );
+  });
+
+  test('letterNames shows C4 for MIDI 60', () {
+    final note = PitchCalculator.midiToNote(60)!;
+
+    expect(
+      formatter.formatScientificName(
+        note,
+        namingSystem: NoteNamingSystem.letterNames,
+      ),
+      'C4',
     );
   });
 

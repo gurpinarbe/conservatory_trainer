@@ -536,7 +536,19 @@ class AppLocalizationsTr extends AppLocalizations {
   String get followHighlightByOctave => 'Vurguyu oktava göre takip et';
 
   @override
-  String get showNoteNamesOnKeys => 'Nota isimlerini tuşlarda göster';
+  String get showNoteNamesOnKeys => 'Nota adlarını göster';
+
+  @override
+  String get sustainLabel => 'Sustain';
+
+  @override
+  String get stopAllPianoButton => 'Tüm Sesleri Durdur';
+
+  @override
+  String get playA4DemoButton => 'La4 Çal';
+
+  @override
+  String get playCMajorDemoButton => 'Do Majör Çal';
 
   @override
   String playReferenceNoteButton(Object noteName) {
@@ -565,6 +577,11 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String octaveLabel(int octave) {
     return '$octave. Oktav';
+  }
+
+  @override
+  String octaveRangeLabel(int startOctave, int endOctave) {
+    return '$startOctave-$endOctave. Oktav';
   }
 
   @override
@@ -664,6 +681,11 @@ class AppLocalizationsTr extends AppLocalizations {
     Object octave,
   ) {
     return '$noteName $accidental $octave';
+  }
+
+  @override
+  String pianoKeySemantics(Object noteName) {
+    return '$noteName piyano tuşu';
   }
 
   @override
